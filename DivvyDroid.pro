@@ -27,13 +27,11 @@ CONFIG += c++11
 
 SOURCES += \
         adbclient.cpp \
-        adbshell.cpp \
         main.cpp \
         mainwindow.cpp
 
 HEADERS += \
         adbclient.h \
-        adbshell.h \
         mainwindow.h
 
 FORMS += \

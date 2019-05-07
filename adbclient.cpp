@@ -1,15 +1,20 @@
 #include "adbclient.h"
 
 #include <QElapsedTimer>
-#include <QImage>
+#include <QPixmap>
 #include <QDebug>
+
+//#define ADB_DEBUG_CONN
+//#define ADB_DEBUG_SHELL
 
 AdbClient::AdbClient(QObject *parent)
 	: QObject(parent)
 {
+#ifdef ADB_DEBUG_CONN
 	connect(&m_sock, &QTcpSocket::stateChanged, [&](QTcpSocket::SocketState state){
 		qDebug() << "ADB CONN:" << state;
 	});
+#endif
 }
 
 bool
@@ -24,7 +29,7 @@ AdbClient::write(const void *data, qint64 max)
 		}
         done += n;
     }
-    return true;
+	return m_sock.waitForBytesWritten();
 }
 
 bool
@@ -57,7 +62,9 @@ AdbClient::readStatus()
 	}
 
 	if(memcmp(buf, "OKAY", 4) == 0) {
+#ifdef ADB_DEBUG_CONN
 		qDebug() << "ADB OKAY";
+#endif
 		return true;
 	}
 
@@ -75,7 +82,7 @@ AdbClient::readStatus()
 	unsigned int len = strtoul((char*)buf, 0, 16);
 	if(len > 255) len = 255;
 
-	if(read(buf, len)) {
+	if(!read(buf, len)) {
 		qDebug() << __FUNCTION__ << "failed: missing error message";
 		return false;
 	}
@@ -103,7 +110,7 @@ AdbClient::readResponse()
 	if(len) {
 		res.reserve(len + 1);
 		if(!read(res.data(), len)) {
-			qDebug() << __FUNCTION__ << "failed: missing response length";
+			qDebug() << __FUNCTION__ << "failed: missing response data";
 			return res;
 		}
 	}
@@ -124,7 +131,9 @@ AdbClient::send(QByteArray command)
 
 	write(QString("%1").arg(command.size(), 4, 16, QChar('0')).toLatin1());
 	write(command);
+#ifdef ADB_DEBUG_CONN
 	qDebug() << "ADB SEND" << command;
+#endif
 
 	return readStatus();
 }
@@ -139,6 +148,110 @@ AdbClient::connectToDevice(const char *deviceId)
 	}
 
 	return true;
+}
+
+bool
+AdbClient::fetchScreenRawInit()
+{
+	if(!connectToDevice())
+		return false;
+
+	if(!send("framebuffer:")) {
+		qWarning() << "WARNING: unable to connect to framebuffer";
+		return false;
+	}
+	if(!read(&m_fbInfo.version, sizeof(m_fbInfo.version))) {
+		qDebug() << __FUNCTION__ << "failed: reading framebuffer version";
+		return false;
+	}
+
+	bool res = false;
+	switch(m_fbInfo.version) {
+	case 16: // version 0
+		qDebug() << "FRAMEBUFFER v0";
+		res = read(&m_fbInfo.v0, sizeof(m_fbInfo.v0));
+		if(!write("0", 1)) {
+			qDebug() << __FUNCTION__ << "failed: writing v0 request";
+			return false;
+		}
+		break;
+	case 1:
+		qDebug() << "FRAMEBUFFER v1";
+		res = read(&m_fbInfo.v1, sizeof(m_fbInfo.v1));
+		Q_ASSERT(m_fbInfo.v1.size == m_fbInfo.v1.width * m_fbInfo.v1.height * m_fbInfo.v1.bpp / 8);
+		break;
+	case 2:
+		qDebug() << "FRAMEBUFFER v2";
+		res = read(&m_fbInfo.v2, sizeof(m_fbInfo.v2));
+		break;
+	default:
+		qDebug() << "FRAMEBUFFER version unsupported";
+		res = false;
+		break;
+	}
+	if(!res) {
+		qDebug() << __FUNCTION__ << "failed: reading framebuffer info";
+		return false;
+	}
+
+	qDebug() << "FRAMEBUFFER " << m_fbInfo.width() << 'x' << m_fbInfo.height() << 'x' << m_fbInfo.bpp() << ' ' << m_fbInfo.size() << "bytes";
+
+	return true;
+}
+
+QImage
+AdbClient::fetchScreenRaw()
+{
+	QElapsedTimer timer;
+	timer.start();
+
+	if(!fetchScreenRawInit())
+		return QImage();
+
+	const int bytesPerLine = m_fbInfo.width() * m_fbInfo.bpp() / 8;
+	QImage img(m_fbInfo.width(), m_fbInfo.height(), m_fbInfo.format());
+	for(int y = 0, h = img.height(); y < h; y++) {
+		if(!read(img.scanLine(y), bytesPerLine)) {
+			qDebug() << __FUNCTION__ << "failed: reading framebuffer frame";
+			return img;
+		}
+	}
+	if(m_fbInfo.format() == QImage::Format_RGB32) {
+		// swap R and B
+		for(int y = 0, h = img.height(); y < h; y++) {
+			uchar *s = img.scanLine(y);
+			for(int x = 0, w = img.width(); x < w; x++) {
+				s += 4;
+				const int t = s[0];
+				s[0] = s[2];
+				s[2] = t;
+			}
+		}
+	}
+
+	qDebug() << "SCREEN frame retrieved in" << timer.elapsed() << "ms";
+
+	return img;
+}
+
+QImage
+AdbClient::fetchScreenPng()
+{
+	QElapsedTimer timer;
+	timer.start();
+
+	if(!connectToDevice())
+		return QImage();
+
+	if(!send("shell:/system/bin/screencap -p")) {
+		qWarning() << "WARNING: unable to execute shell command";
+		return QImage();
+	}
+
+	QByteArray res = readAll();
+	qDebug() << "SCREEN frame retrieved in" << timer.elapsed() << "ms";
+
+	return QImage::fromData(res);
 }
 
 QImage
@@ -159,4 +272,71 @@ AdbClient::fetchScreenJpeg()
 	qDebug() << "SCREEN frame retrieved in" << timer.elapsed() << "ms";
 
 	return QImage::fromData(res);
+}
+
+void
+AdbClient::fetchScreenX264()
+{
+//	# dumpsys window displays | head -n 4
+//	WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
+//	  Display: mDisplayId=0
+//		init=1080x1920 480dpi cur=1080x1920 app=1080x1920 rng=1080x1008-1920x1848
+//		deferred=false layoutNeeded=false
+
+//	# dumpsys display | grep -P '(mScreenState|mDisplayWidth|mDisplayHeight)'
+//	mScreenState=OFF
+//	mDisplayWidth=1080
+//	mDisplayHeight=1920
+
+
+//	# screenrecord --size 720x1280 --output-format=h264 -
+}
+
+/*static*/ QByteArray
+AdbClient::shell(const char *cmd)
+{
+	AdbClient adb;
+
+	if(!adb.connectToDevice())
+		return QByteArray();
+
+	if(!adb.send(QByteArray("shell:").append(cmd))) {
+		qWarning() << "WARNING: unable to execute shell command:" << cmd;
+		return QByteArray();
+	}
+
+#ifdef ADB_DEBUG_SHELL
+	qWarning() << "SHELL" << cmd;
+#endif
+
+	return adb.readAll();
+}
+
+bool
+AdbClient::sendEvents(AdbEventList events)
+{
+	QElapsedTimer timer;
+	timer.start();
+	for(const AdbEvent &evt : events) {
+		if(!write(&evt, sizeof(AdbEvent))) {
+			qDebug() << __FUNCTION__ << "failed sending event";
+			return false;
+		}
+	}
+
+	qDebug() << "EVENTS sent in" << timer.elapsed() << "ms";
+}
+
+/*static*/ bool
+AdbClient::sendEvents(int deviceIndex, AdbEventList events)
+{
+	AdbClient adb;
+	if(!adb.connectToDevice())
+		return false;
+	if(!adb.send(QByteArray("dev:").append(INPUT_DEV_PATH).append(QString::number(deviceIndex)))) {
+		qDebug() << __FUNCTION__ << "failed opening device" << deviceIndex;
+		return false;
+	}
+
+	return adb.sendEvents(events);
 }
