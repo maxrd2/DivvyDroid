@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTimer>
 #include "adbclient.h"
+#include "videothread.h"
 
 namespace Ui {
 class MainWindow;
@@ -26,25 +27,22 @@ protected:
 	bool eventFilter(QObject *obj, QEvent *ev) override;
 	void sendMouseDown();
 
+public slots:
+	void updateScreen(const QImage &image, int width, int height);
+
 private:
 	bool inputHasKey(const QVector<quint64> keyBits, quint64 keyCode);
 
 	Ui::MainWindow *ui;
 
+	VideoThread *m_videoThread;
+
 	QTimer m_screenTimer;
 	quint32 m_screenWidth;
 	quint32 m_screenHeight;
-	AdbClient m_adbScreen;
-	bool m_canJpeg;
-	bool m_canPng;
-	bool m_canRaw;
 
-	QPoint m_lastMouseDown;
-	QTimer m_mouseDownTimer;
 	qint32 m_lastTouchId;
 	AdbClient m_adbTouch;
-//	AdbShell m_shellScreen;
-//	AdbShell m_shellInput;
 
 	int m_inputTouch;
 	bool m_inputMouseDown;

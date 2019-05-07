@@ -325,6 +325,7 @@ AdbClient::sendEvents(AdbEventList events)
 	}
 
 	qDebug() << "EVENTS sent in" << timer.elapsed() << "ms";
+	return true;
 }
 
 /*static*/ bool

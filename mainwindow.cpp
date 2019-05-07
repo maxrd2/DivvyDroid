@@ -11,10 +11,8 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent),
 	  ui(new Ui::MainWindow),
+	  m_videoThread(nullptr),
 	  m_screenTimer(this),
-	  m_canJpeg(true),
-	  m_canPng(true),
-	  m_canRaw(true),
 	  m_lastTouchId(33),
 	  m_inputTouch(-1),
 	  m_inputMouseDown(false),
@@ -22,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	for(unsigned int i = 0; i < sizeof(m_keyDevice) / sizeof(*m_keyDevice); i++)
 		m_keyDevice[i] = -1;
+
 	ui->setupUi(this);
 }
 
@@ -49,29 +48,13 @@ MainWindow::init()
 		return;
 	}
 
-	// capture screen
-	connect(&m_screenTimer, &QTimer::timeout, [&](){
-		QImage img;
-		if(m_canJpeg) {
-			img = m_adbScreen.fetchScreenJpeg();
-//			m_canJpeg = !img.isNull();
-		} else if(m_canRaw) {
-			img = m_adbScreen.fetchScreenRaw();
-			m_canRaw = !img.isNull();
-		} else if(m_canPng) {
-			img = m_adbScreen.fetchScreenPng();
-			m_canPng = !img.isNull();
-		} else {
-			return;
-		}
-		m_screenWidth = img.width();
-		m_screenHeight = img.height();
-		ui->screen->setPixmap(QPixmap::fromImage(img).scaledToWidth(360, Qt::SmoothTransformation));
-	});
-	m_screenTimer.start(600);
-
 	// device architecture
 	m_arch64 = AdbClient::shell("file -L /system/bin/cat | grep 32-bit").size() == 0;
+
+	// video thread
+	m_videoThread = new VideoThread();
+	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
+	m_videoThread->start();
 
 	// device input
 	initInput();
@@ -82,6 +65,14 @@ MainWindow::init()
 						  << AdbEvent(EV_SYN)
 						  << AdbEvent(EV_KEY, KEY_POWER, 0)
 						  << AdbEvent(EV_SYN));
+}
+
+void
+MainWindow::updateScreen(const QImage &image, int width, int height)
+{
+	m_screenWidth = width;
+	m_screenHeight = height;
+	ui->screen->setPixmap(QPixmap::fromImage(image));
 }
 
 void
@@ -134,27 +125,7 @@ MainWindow::initInput()
 		}
 	}
 
-	connect(&m_mouseDownTimer, &QTimer::timeout, this, &MainWindow::sendMouseDown);
-	m_mouseDownTimer.setSingleShot(true);
-
 	ui->screen->installEventFilter(this);
-}
-
-void
-MainWindow::sendMouseDown()
-{
-	m_adbTouch.sendEvents(AdbEventList()
-						  << AdbEvent(EV_ABS, ABS_MT_TRACKING_ID, ++m_lastTouchId)
-						  << AdbEvent(EV_ABS, ABS_MT_PRESSURE, 40)
-						  << AdbEvent(EV_ABS, ABS_MT_DISTANCE, 0)
-						  << AdbEvent(EV_ABS, ABS_MT_TOUCH_MAJOR, 1)
-						  << AdbEvent(EV_ABS, ABS_MT_WIDTH_MAJOR, 10)
-						  << AdbEvent(EV_ABS, ABS_MT_POSITION_X, m_lastMouseDown.x())
-						  << AdbEvent(EV_ABS, ABS_MT_POSITION_Y, m_lastMouseDown.y())
-						  << AdbEvent(EV_ABS, ABS_X, m_lastMouseDown.x())
-						  << AdbEvent(EV_ABS, ABS_Y, m_lastMouseDown.y())
-						  << AdbEvent(EV_KEY, BTN_TOUCH, 1)
-						  << AdbEvent(EV_SYN));
 }
 
 bool
@@ -165,18 +136,24 @@ MainWindow::eventFilter(QObject *obj, QEvent *ev)
 		switch(ev->type()) {
 		case QEvent::MouseButtonPress: {
 			m_inputMouseDown = true;
-			// we will fire it later, otherwise it works funky
-			m_lastMouseDown.setX(mev->x() * m_screenWidth / ui->screen->width());
-			m_lastMouseDown.setY(mev->y() * m_screenHeight / ui->screen->height());
-			m_mouseDownTimer.start(200);
-			qDebug() << "MOUSE DOWN" << m_lastMouseDown.x() << "," << m_lastMouseDown.y();
+			const int x = mev->x() * m_screenWidth / ui->screen->width();
+			const int y = mev->y() * m_screenHeight / ui->screen->height();
+			m_adbTouch.sendEvents(AdbEventList()
+								  << AdbEvent(EV_ABS, ABS_MT_TRACKING_ID, ++m_lastTouchId)
+								  << AdbEvent(EV_ABS, ABS_MT_PRESSURE, 40)
+								  << AdbEvent(EV_ABS, ABS_MT_DISTANCE, 0)
+								  << AdbEvent(EV_ABS, ABS_MT_TOUCH_MAJOR, 1)
+								  << AdbEvent(EV_ABS, ABS_MT_WIDTH_MAJOR, 10)
+								  << AdbEvent(EV_ABS, ABS_MT_POSITION_X, x)
+								  << AdbEvent(EV_ABS, ABS_MT_POSITION_Y, y)
+								  << AdbEvent(EV_ABS, ABS_X, x)
+								  << AdbEvent(EV_ABS, ABS_Y, y)
+								  << AdbEvent(EV_KEY, BTN_TOUCH, 1)
+								  << AdbEvent(EV_SYN));
+			qDebug() << "MOUSE DOWN" << x << "," << y;
 			return true;
 		}
 		case QEvent::MouseButtonRelease: {
-			if(m_mouseDownTimer.isActive()) {
-				m_mouseDownTimer.stop();
-				sendMouseDown();
-			}
 			m_inputMouseDown = false;
 			const int x = mev->x() * m_screenWidth / ui->screen->width();
 			const int y = mev->y() * m_screenHeight / ui->screen->height();
@@ -194,10 +171,6 @@ MainWindow::eventFilter(QObject *obj, QEvent *ev)
 		}
 		case QEvent::MouseMove:
 			if(m_inputMouseDown) {
-				if(m_mouseDownTimer.isActive()) {
-					m_mouseDownTimer.stop();
-					sendMouseDown();
-				}
 				const int x = mev->x() * m_screenWidth / ui->screen->width();
 				const int y = mev->y() * m_screenHeight / ui->screen->height();
 				qDebug() << "MOUSE MOVE" << x << "," << y;
