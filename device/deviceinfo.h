@@ -5,7 +5,7 @@
 #include <QMap>
 #include <QByteArray>
 
-#include "input-event-codes.h"
+#include "input/input-event-codes.h"
 //#include <linux/input.h>
 
 #define INPUT_SYS_PATH "/sys/class/input/input"

@@ -26,21 +26,22 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        adbclient.cpp \
-        deviceinfo.cpp \
-        devicetouchhandler.cpp \
-        inputhandler.cpp \
+        device/adbclient.cpp \
+        device/deviceinfo.cpp \
+        device/videothread.cpp \
+        input/devicetouchhandler.cpp \
+        input/inputhandler.cpp \
         main.cpp \
-        mainwindow.cpp \
-        videothread.cpp
+        mainwindow.cpp
 
 HEADERS += \
-        adbclient.h \
-        deviceinfo.h \
-        devicetouchhandler.h \
-        inputhandler.h \
-        mainwindow.h \
-        videothread.h
+        device/adbclient.h \
+        device/deviceinfo.h \
+        device/videothread.h \
+        input/devicetouchhandler.h \
+        input/inputhandler.h \
+        input/input-event-codes.h \
+        mainwindow.h
 
 FORMS += \
         mainwindow.ui

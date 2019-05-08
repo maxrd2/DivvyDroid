@@ -3,8 +3,8 @@
 
 #include <QMainWindow>
 #include <QTimer>
-#include "adbclient.h"
-#include "videothread.h"
+#include "device/adbclient.h"
+#include "device/videothread.h"
 
 namespace Ui {
 class MainWindow;

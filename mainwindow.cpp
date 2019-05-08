@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "deviceinfo.h"
-#include "devicetouchhandler.h"
+#include "device/deviceinfo.h"
+#include "input/devicetouchhandler.h"
 
 #include <iostream>
 #include <cstdarg>

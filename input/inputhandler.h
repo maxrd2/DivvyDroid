@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include "adbclient.h"
+#include "device/adbclient.h"
 
 class InputHandler : public QObject
 {
