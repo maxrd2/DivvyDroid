@@ -1,7 +1,10 @@
 #include "videothread.h"
 #include "adbclient.h"
+#include "deviceinfo.h"
 
 #include <QImage>
+
+#define IMAGE_WIDTH 360
 
 VideoThread::VideoThread(QObject *parent)
 	: QThread(parent)
@@ -24,20 +27,24 @@ VideoThread::run()
 
 	while(!isInterruptionRequested()) {
 		QImage img;
-
-		if(canJpeg) {
-			img = adb.fetchScreenJpeg();
-//			m_canJpeg = !img.isNull();
-		} else if(canRaw) {
-			img = adb.fetchScreenRaw();
-//			canRaw = !img.isNull();
-		} else if(canPng) {
-			img = adb.fetchScreenPng();
-//			canPng = !img.isNull();
+		if(aDev->isScreenAwake()) {
+			if(canJpeg) {
+				img = adb.fetchScreenJpeg();
+				canJpeg = !img.isNull();
+			} else if(canRaw) {
+				img = adb.fetchScreenRaw();
+				canRaw = !img.isNull();
+			} else if(canPng) {
+				img = adb.fetchScreenPng();
+				canPng = !img.isNull();
+			} else {
+				return;
+			}
 		} else {
-			return;
+			img = QImage(IMAGE_WIDTH, IMAGE_WIDTH * aDev->screenHeight() / aDev->screenWidth(), QImage::Format_RGB888);
+			img.fill(Qt::black);
 		}
-		emit imageReady(img.scaledToWidth(360, Qt::SmoothTransformation), img.width(), img.height());
+		emit imageReady(img.scaledToWidth(IMAGE_WIDTH, Qt::SmoothTransformation));
 		msleep(10);
 	}
 }

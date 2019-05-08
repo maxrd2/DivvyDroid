@@ -1,5 +1,7 @@
 #include "adbclient.h"
 
+#include "deviceinfo.h"
+
 #include <QElapsedTimer>
 #include <QPixmap>
 #include <QDebug>
@@ -94,28 +96,26 @@ AdbClient::readStatus()
 QByteArray
 AdbClient::readResponse()
 {
-	QByteArray res;
-
 	size_t len = 0;
 	{
 		char tmp[5];
 		if(!read(tmp, 4)) {
 			qDebug() << __FUNCTION__ << "failed: missing response length";
-			return res;
+			return QByteArray();
 		}
 		tmp[4] = 0;
 		len = strtoul((char*)tmp, 0, 16);
 	}
 
 	if(len) {
-		res.reserve(len + 1);
-		if(!read(res.data(), len)) {
+		char res[len + 1];
+		res[0] = res[len] = 0;
+		if(!read(res, len))
 			qDebug() << __FUNCTION__ << "failed: missing response data";
-			return res;
-		}
+		return res;
 	}
 
-	return res;
+	return QByteArray();
 }
 
 bool
@@ -139,10 +139,15 @@ AdbClient::send(QByteArray command)
 }
 
 bool
-AdbClient::connectToDevice(const char *deviceId)
+AdbClient::connectToDevice()
 {
-	deviceId; // TODO: connect to specific device
-	if(!send("host:transport-any")) {
+	QByteArray cmd("host:transport");
+	if(aDev->deviceId().isEmpty())
+		cmd.append("-any");
+	else
+		cmd.append(":").append(aDev->deviceId());
+
+	if(!send(cmd)) {
 		qWarning() << "WARNING: unable to connect to android device";
 		return false;
 	}

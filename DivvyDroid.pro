@@ -27,12 +27,18 @@ CONFIG += c++11
 
 SOURCES += \
         adbclient.cpp \
+        deviceinfo.cpp \
+        devicetouchhandler.cpp \
+        inputhandler.cpp \
         main.cpp \
         mainwindow.cpp \
         videothread.cpp
 
 HEADERS += \
         adbclient.h \
+        deviceinfo.h \
+        devicetouchhandler.h \
+        inputhandler.h \
         mainwindow.h \
         videothread.h
 

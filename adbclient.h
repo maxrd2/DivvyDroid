@@ -4,13 +4,6 @@
 #include <QTcpSocket>
 #include <QImage>
 
-#include "input-event-codes.h"
-//#include <linux/input.h>
-
-#define INPUT_SYS_PATH "/sys/class/input/input"
-#define INPUT_DEV_PATH "/dev/input/event"
-#define HAS_BIT(v, b) (v & (1 << b))
-
 struct AdbEvent {
 	AdbEvent(quint16 t, quint16 c = 0, qint32 v = 0)
 		: time(0),
@@ -31,7 +24,7 @@ public:
 	explicit AdbClient(QObject *parent = nullptr);
 
 	void connectToHost() { m_sock.connectToHost(QStringLiteral("localhost"), 5037, QIODevice::ReadWrite); }
-	bool connectToDevice(const char *deviceId = nullptr);
+	bool connectToDevice();
 
 	bool read(void *data, qint64 max);
 	bool write(const void *data, qint64 max);

@@ -13,7 +13,7 @@ public:
 	void setWidth(int width) { m_imageWidth = width; }
 
 signals:
-    void imageReady(const QImage &image, int width, int height);
+    void imageReady(const QImage &image);
 
 protected:
     void run();
