@@ -4,8 +4,6 @@
 
 #include <QImage>
 
-#define IMAGE_WIDTH 360
-
 VideoThread::VideoThread(QObject *parent)
 	: QThread(parent)
 {

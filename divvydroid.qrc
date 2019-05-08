@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/home.svg</file>
+        <file>icons/lock-open.svg</file>
+        <file>icons/menu.svg</file>
+        <file>icons/power-standby.svg</file>
+        <file>icons/undo-variant.svg</file>
+        <file>icons/volume-minus.svg</file>
+        <file>icons/volume-plus.svg</file>
+        <file>divvydroid.qss</file>
+        <file>icons/android-debug-bridge.svg</file>
+    </qresource>
+</RCC>

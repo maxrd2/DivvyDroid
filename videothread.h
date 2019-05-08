@@ -3,6 +3,8 @@
 
 #include <QThread>
 
+#define IMAGE_WIDTH 360
+
 class VideoThread : public QThread
 {
 	Q_OBJECT

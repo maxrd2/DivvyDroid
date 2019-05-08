@@ -30,6 +30,13 @@ MainWindow::init()
 //	DeviceInfo::connect(devices.firstKey());
 	DeviceInfo::connect();
 
+	// make window fixed size
+	QPixmap img(IMAGE_WIDTH, IMAGE_WIDTH * aDev->screenHeight() / aDev->screenWidth());
+	img.fill(Qt::black);
+	ui->screen->setPixmap(img);
+	adjustSize();
+	setFixedSize(sizeHint());
+
 	// video thread
 	m_videoThread = new VideoThread();
 	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
