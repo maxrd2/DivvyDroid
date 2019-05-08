@@ -19,6 +19,11 @@ AdbClient::AdbClient(QObject *parent)
 #endif
 }
 
+AdbClient::~AdbClient()
+{
+	m_sock.abort();
+}
+
 bool
 AdbClient::write(const void *data, qint64 max)
 {

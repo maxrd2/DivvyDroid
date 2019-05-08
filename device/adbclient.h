@@ -22,6 +22,7 @@ class AdbClient : public QObject
 {
 public:
 	explicit AdbClient(QObject *parent = nullptr);
+	virtual ~AdbClient();
 
 	void connectToHost() { m_sock.connectToHost(QStringLiteral("localhost"), 5037, QIODevice::ReadWrite); }
 	bool connectToDevice();

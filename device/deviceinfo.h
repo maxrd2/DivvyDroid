@@ -28,6 +28,7 @@ public:
 	inline int inputTouch() const { return m_inputTouch; }
 	inline int inputPower() const { return m_inputPower; }
 	inline int inputHome() const { return m_inputHome; }
+	inline int inputBack() const { return m_inputBack; }
 	inline int inputVolume() const { return m_inputVolume; }
 
 	static DeviceList deviceList();
@@ -42,6 +43,7 @@ private:
 	int m_inputTouch;
 	int m_inputPower;
 	int m_inputHome;
+	int m_inputBack;
 	int m_inputVolume;
 	quint32 m_screenWidth;
 	quint32 m_screenHeight;

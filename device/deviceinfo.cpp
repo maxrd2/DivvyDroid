@@ -104,17 +104,22 @@ DeviceInfo::connect(const char *deviceId)
 			qDebug() << "INPUT device" << devIndex << name << "is touch screen";
 			aDev->m_inputTouch = devIndex;
 		} else if(HAS_BIT(evBits, EV_SYN) && HAS_BIT(evBits, EV_KEY)) {
-			if(inputHasKey(keyBits, KEY_HOME) && inputHasKey(keyBits, KEY_BACK)) {
-				qDebug() << "INPUT device" << devIndex << name << "has some home/back key";
+			qDebug() << "INPUT device" << devIndex << name << "has some keys";
+			if(inputHasKey(keyBits, KEY_HOMEPAGE)) {
+				qDebug() << "INPUT device" << devIndex << name << "has home key";
 				aDev->m_inputHome = devIndex;
-			} else if(inputHasKey(keyBits, KEY_POWER)) {
-				qDebug() << "INPUT device" << devIndex << name << "has some power key";
+			}
+			if(inputHasKey(keyBits, KEY_BACK)) {
+				qDebug() << "INPUT device" << devIndex << name << "has back key";
+				aDev->m_inputBack = devIndex;
+			}
+			if(inputHasKey(keyBits, KEY_POWER)) {
+				qDebug() << "INPUT device" << devIndex << name << "has power key";
 				aDev->m_inputPower = devIndex;
-			} else if(inputHasKey(keyBits, KEY_VOLUMEUP) && inputHasKey(keyBits, KEY_VOLUMEDOWN)) {
-				qDebug() << "INPUT device" << devIndex << name << "has some volume keys";
+			}
+			if(inputHasKey(keyBits, KEY_VOLUMEUP) && inputHasKey(keyBits, KEY_VOLUMEDOWN)) {
+				qDebug() << "INPUT device" << devIndex << name << "has volume keys";
 				aDev->m_inputVolume = devIndex;
-			} else {
-				qDebug() << "INPUT device" << devIndex << name << "has some keys";
 			}
 		} else {
 			qDebug() << "INPUT device" << devIndex << name << "is not supported";

@@ -29,6 +29,7 @@ SOURCES += \
         device/adbclient.cpp \
         device/deviceinfo.cpp \
         device/videothread.cpp \
+        input/devicebuttonhandler.cpp \
         input/devicetouchhandler.cpp \
         input/inputhandler.cpp \
         main.cpp \
@@ -38,6 +39,7 @@ HEADERS += \
         device/adbclient.h \
         device/deviceinfo.h \
         device/videothread.h \
+        input/devicebuttonhandler.h \
         input/devicetouchhandler.h \
         input/inputhandler.h \
         input/input-event-codes.h \

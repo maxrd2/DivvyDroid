@@ -3,10 +3,12 @@
 
 #include "device/deviceinfo.h"
 #include "input/devicetouchhandler.h"
+#include "input/devicebuttonhandler.h"
 
 #include <iostream>
 #include <cstdarg>
 
+#include <QMouseEvent>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -47,14 +49,35 @@ MainWindow::init()
 	if(touchHandler->init())
 		ui->screen->installEventFilter(touchHandler);
 
-	// wake up
-/*
-	AdbClient::sendEvents(m_keyDevice[KEY_POWER], AdbEventList()
-						  << AdbEvent(EV_KEY, KEY_POWER, 1)
-						  << AdbEvent(EV_SYN)
-						  << AdbEvent(EV_KEY, KEY_POWER, 0)
-						  << AdbEvent(EV_SYN));
-*/
+	// init bottom keys
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputHome(),
+		WidgetKeyMap{{ ui->btnHome, KEY_HOMEPAGE }});
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputBack(),
+		WidgetKeyMap{{ ui->btnMenu, KEY_MENU }, { ui->btnBack, KEY_BACK }});
+
+	// init volume keys
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputVolume(),
+		WidgetKeyMap{{ ui->btnVolumeDown, KEY_VOLUMEDOWN }, { ui->btnVolumeUp, KEY_VOLUMEUP }});
+
+	// init power key
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputPower(),
+		WidgetKeyMap{{ ui->btnPower, KEY_POWER }});
+
+	// init unlock key
+	connect(ui->btnUnlock, &QPushButton::clicked, [&](){
+		if(!aDev->isScreenAwake()) {
+			const QPoint pos(ui->btnPower->geometry().center());
+			QCoreApplication::sendEvent(ui->btnPower,
+				new QMouseEvent(QEvent::MouseButtonPress, pos, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier));
+			QCoreApplication::sendEvent(ui->btnPower,
+				new QMouseEvent(QEvent::MouseButtonRelease, pos, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier));
+		}
+		AdbClient::shell("wm dismiss-keyguard");
+	});
 }
 
 void
