@@ -76,6 +76,17 @@ AdbClient::read(void *data, qint64 max)
     return true;
 }
 
+QByteArray
+AdbClient::readAll()
+{
+	QByteArray buf;
+
+	while(m_sock.waitForReadyRead())
+		buf.append(m_sock.readAll());
+	Q_ASSERT(m_sock.state() == QAbstractSocket::UnconnectedState);
+	return buf;
+}
+
 bool
 AdbClient::readStatus()
 {

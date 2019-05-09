@@ -53,7 +53,7 @@ public:
 
 	bool readStatus();
 	QByteArray readResponse();
-	QByteArray readAll() { m_sock.waitForDisconnected(); return m_sock.readAll(); }
+	QByteArray readAll();
 
 	QImage fetchScreenRaw();
 	QImage fetchScreenPng();
