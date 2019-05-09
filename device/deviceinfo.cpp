@@ -110,6 +110,8 @@ DeviceInfo::connect(const char *deviceId)
 							   .append(input).append("/capabilities/ev ")
 							   .append(input).append("/capabilities/key ")
 							   .append("2>/dev/null")).split('\n');
+		if(res.size() < 3)
+			continue;
 
 		QString name = res.at(0).trimmed();
 		int evBits = res.at(1).trimmed().toInt(nullptr, 16);
@@ -148,5 +150,6 @@ DeviceInfo::connect(const char *deviceId)
 bool
 DeviceInfo::isScreenAwake() const
 {
-	return AdbClient::shell("service call power 12").at(31) == '1';
+	const QByteArray res = AdbClient::shell("service call power 12");
+	return res.size() >= 32 && res.at(31) == '1';
 }
