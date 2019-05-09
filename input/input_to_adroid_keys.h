@@ -16,33 +16,9 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef DEVICEBUTTONHANDLER_H
-#define DEVICEBUTTONHANDLER_H
+#ifndef LINUXTOADROIDKEYCODES_H
+#define LINUXTOADROIDKEYCODES_H
 
-#include "input/inputhandler.h"
+extern int keyToAndroidCode[];
 
-#include <QMap>
-#include <QElapsedTimer>
-
-typedef QMap<QObject *, quint16> WidgetKeyMap;
-
-class DeviceButtonHandler : public InputHandler
-{
-public:
-	explicit DeviceButtonHandler(QObject *parent = nullptr);
-	virtual ~DeviceButtonHandler();
-
-	bool init(int deviceNr, const WidgetKeyMap &keyMap);
-
-protected:
-	bool eventFilter(QObject *obj, QEvent *ev) override;
-
-private:
-	bool init() override { return false; }
-
-	WidgetKeyMap m_keyMap;
-	bool m_useDevice;
-	QElapsedTimer m_pressTime;
-};
-
-#endif // DEVICEBUTTONHANDLER_H
+#endif // LINUXTOADROIDKEYCODES_H

@@ -20,12 +20,14 @@
 
 #include "device/deviceinfo.h"
 #include "device/adbclient.h"
-#include "input/input-event-codes.h"
+#include "input/input_event_codes.h"
+#include "input/input_to_adroid_keys.h"
 
 #include <QMouseEvent>
 
 DeviceButtonHandler::DeviceButtonHandler(QObject *parent)
-	: InputHandler(parent)
+	: InputHandler(parent),
+	  m_useDevice(true)
 {
 }
 
@@ -35,20 +37,11 @@ DeviceButtonHandler::~DeviceButtonHandler()
 }
 
 bool
-DeviceButtonHandler::init(int deviceId, const WidgetKeyMap &keyMap)
+DeviceButtonHandler::init(int deviceNr, const WidgetKeyMap &keyMap)
 {
-	if(deviceId == -1) {
-		qDebug() << __FUNCTION__ << "failed opening device" << deviceId;
-		return false;
-	}
-
-	if(!InputHandler::init())
-		return false;
-
-	m_adb.connectToDevice();
-	if(!m_adb.send(QByteArray("dev:").append(INPUT_DEV_PATH).append(QString::number(deviceId)))) {
-		qDebug() << __FUNCTION__ << "failed opening device" << deviceId;
-		return false;
+	if(deviceNr == -1 || !InputHandler::init() || !m_adb.send(QByteArray("dev:").append(INPUT_DEV_PATH).append(QString::number(deviceNr)))) {
+		qDebug() << __FUNCTION__ << "failed opening device" << deviceNr << "will send event using shell";
+		m_useDevice = false;
 	}
 
 	m_keyMap = keyMap;
@@ -69,16 +62,28 @@ DeviceButtonHandler::eventFilter(QObject *obj, QEvent *ev)
 	switch(ev->type()) {
 	case QEvent::MouseButtonPress: {
 		qDebug() << "KEY DOWN" << keyCode;
-		m_adb.sendEvents(AdbEventList()
-				<< AdbEvent(EV_KEY, keyCode, 1)
-				<< AdbEvent(EV_SYN));
+		if(m_useDevice) {
+			m_adb.sendEvents(AdbEventList()
+					<< AdbEvent(EV_KEY, keyCode, 1)
+					<< AdbEvent(EV_SYN));
+		} else {
+			m_pressTime.start();
+		}
 		return true;
 	}
 	case QEvent::MouseButtonRelease: {
 		qDebug() << "KEY UP" << keyCode;
-		m_adb.sendEvents(AdbEventList()
-				<< AdbEvent(EV_KEY, keyCode, 0)
-				<< AdbEvent(EV_SYN));
+		if(m_useDevice) {
+			m_adb.sendEvents(AdbEventList()
+					<< AdbEvent(EV_KEY, keyCode, 0)
+					<< AdbEvent(EV_SYN));
+		} else {
+			QByteArray cmd("input keyevent ");
+			if(m_pressTime.elapsed() > 600)
+				cmd.append("--longpress ");
+			cmd.append(QString::number(keyToAndroidCode[keyCode]));
+			AdbClient::shell(cmd);
+		}
 		return true;
 	}
 

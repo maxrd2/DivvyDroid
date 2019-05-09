@@ -31,6 +31,7 @@ SOURCES += \
         device/videothread.cpp \
         input/devicebuttonhandler.cpp \
         input/devicetouchhandler.cpp \
+        input/input_to_adroid_keys.cpp \
         input/inputhandler.cpp \
         main.cpp \
         mainwindow.cpp
@@ -39,10 +40,12 @@ HEADERS += \
         device/adbclient.h \
         device/deviceinfo.h \
         device/videothread.h \
+        input/android_keycodes.h \
         input/devicebuttonhandler.h \
         input/devicetouchhandler.h \
+        input/input_event_codes.h \
+        input/input_to_adroid_keys.h \
         input/inputhandler.h \
-        input/input-event-codes.h \
         mainwindow.h
 
 FORMS += \
