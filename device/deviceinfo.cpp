@@ -71,6 +71,19 @@ DeviceInfo::deviceList()
 }
 
 static bool
+deviceIsWritable(int deviceNr)
+{
+	AdbClient adb;
+	if(!adb.connectToDevice())
+		return false;
+
+	if(!adb.send(QByteArray("dev:").append(INPUT_DEV_PATH).append(QString::number(deviceNr))))
+		return false;
+
+	return true;
+}
+
+static bool
 inputHasKey(const QVector<quint64> keyBits, quint64 keyCode)
 {
 	const int byte = keyCode / (aDev->isArch64() ? 64 : 32);
@@ -124,23 +137,33 @@ DeviceInfo::connect(const char *deviceId)
 			qDebug() << "INPUT device" << devIndex << name << "is touch screen";
 			aDev->m_inputTouch = devIndex;
 		} else if(HAS_BIT(evBits, EV_SYN) && HAS_BIT(evBits, EV_KEY)) {
-			qDebug() << "INPUT device" << devIndex << name << "has some keys";
+			if(!deviceIsWritable(devIndex)) {
+				qDebug() << "INPUT device" << devIndex << name << "is not writable";
+				continue;
+			}
+			bool gotKey = false;
 			if(inputHasKey(keyBits, KEY_HOMEPAGE)) {
 				qDebug() << "INPUT device" << devIndex << name << "has home key";
 				aDev->m_inputHome = devIndex;
+				gotKey = true;
 			}
 			if(inputHasKey(keyBits, KEY_BACK)) {
 				qDebug() << "INPUT device" << devIndex << name << "has back key";
 				aDev->m_inputBack = devIndex;
+				gotKey = true;
 			}
 			if(inputHasKey(keyBits, KEY_POWER)) {
 				qDebug() << "INPUT device" << devIndex << name << "has power key";
 				aDev->m_inputPower = devIndex;
+				gotKey = true;
 			}
 			if(inputHasKey(keyBits, KEY_VOLUMEUP) && inputHasKey(keyBits, KEY_VOLUMEDOWN)) {
 				qDebug() << "INPUT device" << devIndex << name << "has volume keys";
 				aDev->m_inputVolume = devIndex;
+				gotKey = true;
 			}
+			if(!gotKey)
+				qDebug() << "INPUT device" << devIndex << name << "has some keys";
 		} else {
 			qDebug() << "INPUT device" << devIndex << name << "is not supported";
 		}
