@@ -5,6 +5,8 @@
 - Requires ADB to be installed, root might be needed on some devices
 - Display Android device screen using screencap (JPEG, PNG, RAW) over ADB TCP
 - Fast and accurate touch events by writing directly to /dev/input on android device
+- Fallback to slow and inaccurate adb shell input command without /dev/input write permissions
+- Keyboard support/emulation using adb shell input command
 ![screenshot](https://user-images.githubusercontent.com/1187381/57383580-5a513e00-71af-11e9-864b-68f31cb5e7b1.png)
 
 ## Build/Install
