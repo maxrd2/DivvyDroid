@@ -21,8 +21,35 @@
 
 #include "input/android_keycodes.h"
 
+QMap<Qt::Key, int> qtToAndroidCode = {
+	{Qt::Key_Escape, AKEYCODE_ESCAPE},
+	{Qt::Key_Backspace, AKEYCODE_DEL},
+	{Qt::Key_Tab, AKEYCODE_TAB},
+	{Qt::Key_Enter, AKEYCODE_ENTER},
+	{Qt::Key_Return, AKEYCODE_ENTER},
+	{Qt::Key_F1, AKEYCODE_F1},
+	{Qt::Key_F2, AKEYCODE_F2},
+	{Qt::Key_F3, AKEYCODE_F3},
+	{Qt::Key_F4, AKEYCODE_F4},
+	{Qt::Key_F5, AKEYCODE_F5},
+	{Qt::Key_F6, AKEYCODE_F6},
+	{Qt::Key_F7, AKEYCODE_F7},
+	{Qt::Key_F8, AKEYCODE_F8},
+	{Qt::Key_F9, AKEYCODE_F9},
+	{Qt::Key_F10, AKEYCODE_F10},
+	{Qt::Key_Home, AKEYCODE_MOVE_HOME},
+	{Qt::Key_Up, AKEYCODE_DPAD_UP},
+	{Qt::Key_Left, AKEYCODE_DPAD_LEFT},
+	{Qt::Key_Right, AKEYCODE_DPAD_RIGHT},
+	{Qt::Key_End, AKEYCODE_MOVE_END},
+	{Qt::Key_Down, AKEYCODE_DPAD_DOWN},
+	{Qt::Key_Insert, AKEYCODE_INSERT},
+	{Qt::Key_Delete, AKEYCODE_FORWARD_DEL}
+};
+
+
 // NOTE: this mappings might be inaccurate
-int keyToAndroidCode[] = {
+int keyToAndroidCode[249] = {
 	AKEYCODE_UNKNOWN,			// 0: KEY_RESERVED
 	AKEYCODE_ESCAPE,			// 1: KEY_ESC
 	AKEYCODE_1,					// 2: KEY_1

@@ -22,6 +22,7 @@
 #include "device/deviceinfo.h"
 #include "input/devicetouchhandler.h"
 #include "input/devicebuttonhandler.h"
+#include "input/shellkeyboardhandler.h"
 
 #include <iostream>
 #include <cstdarg>
@@ -61,6 +62,12 @@ MainWindow::init()
 	m_videoThread = new VideoThread();
 	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
 	m_videoThread->start();
+
+	// init keyboard
+	ui->screen->setFocusPolicy(Qt::StrongFocus);
+	ShellKeyboardHandler *keyboardHandler = new ShellKeyboardHandler(this);
+	if(keyboardHandler->init())
+		ui->screen->installEventFilter(keyboardHandler);
 
 	// init touch
 	DeviceTouchHandler *touchHandler = new DeviceTouchHandler(this);

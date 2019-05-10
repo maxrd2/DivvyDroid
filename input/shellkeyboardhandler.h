@@ -16,12 +16,23 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef LINUXTOADROIDKEYCODES_H
-#define LINUXTOADROIDKEYCODES_H
+#ifndef SHELLKEYBOARDHANDLER_H
+#define SHELLKEYBOARDHANDLER_H
 
-#include <QMap>
+#include "inputhandler.h"
 
-extern QMap<Qt::Key, int> qtToAndroidCode;
-extern int keyToAndroidCode[249];
+class ShellKeyboardHandler : public InputHandler
+{
+public:
+	explicit ShellKeyboardHandler(QObject *parent = nullptr);
+	virtual ~ShellKeyboardHandler();
 
-#endif // LINUXTOADROIDKEYCODES_H
+	bool init() override { return true; }
+
+protected:
+	bool eventFilter(QObject *obj, QEvent *ev) override;
+};
+
+#endif // SHELLKEYBOARDHANDLER_H
+
+

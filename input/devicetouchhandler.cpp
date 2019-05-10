@@ -112,7 +112,7 @@ DeviceTouchHandler::eventFilter(QObject *obj, QEvent *ev)
 		break;
 
 	default:
-		return false;
+		break;
 	}
 
 	return false;
