@@ -19,6 +19,8 @@
 #ifndef SHELLKEYBOARDHANDLER_H
 #define SHELLKEYBOARDHANDLER_H
 
+#include <QTimer>
+
 #include "inputhandler.h"
 
 class ShellKeyboardHandler : public InputHandler
@@ -31,6 +33,14 @@ public:
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *ev) override;
+
+private slots:
+	void sendEvents();
+
+private:
+	QTimer m_timer;
+	QByteArray m_bufferedKeys;
+	QByteArray m_bufferedText;
 };
 
 #endif // SHELLKEYBOARDHANDLER_H

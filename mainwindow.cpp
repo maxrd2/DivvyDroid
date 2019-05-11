@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
 	  m_videoThread(nullptr)
 {
 	ui->setupUi(this);
+	ui->screen->setFocus();
 }
 
 void
