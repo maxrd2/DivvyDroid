@@ -111,7 +111,11 @@ DeviceInfo::connect(const char *deviceId)
 	aDev->m_screenWidth = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
 	i = res.indexOf("DisplayHeight");
 	aDev->m_screenHeight = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
+}
 
+void
+DeviceInfo::initInput()
+{
 	// enumerate input devices
 	QList<QByteArray> inputs = AdbClient::shell("ls -d " INPUT_SYS_PATH "*").simplified().split(' ');
 

@@ -30,6 +30,10 @@
 AdbClient::AdbClient(QObject *parent)
 	: QObject(parent)
 {
+	connect(&m_sock, &QTcpSocket::stateChanged, this, &AdbClient::stateChanged);
+	connect(&m_sock, QOverload<QTcpSocket::SocketError>::of(&QTcpSocket::error), this, &AdbClient::error);
+	connect(&m_sock, &QTcpSocket::readyRead, this, &AdbClient::readyRead);
+	connect(&m_sock, &QTcpSocket::bytesWritten, this, &AdbClient::bytesWritten);
 #ifdef ADB_DEBUG_CONN
 	connect(&m_sock, &QTcpSocket::stateChanged, [&](QTcpSocket::SocketState state){
 		qDebug() << "ADB CONN:" << state;
@@ -39,7 +43,7 @@ AdbClient::AdbClient(QObject *parent)
 
 AdbClient::~AdbClient()
 {
-	m_sock.abort();
+	m_sock.close();
 }
 
 bool
@@ -85,6 +89,13 @@ AdbClient::readAll()
 		buf.append(m_sock.readAll());
 	Q_ASSERT(m_sock.state() == QAbstractSocket::UnconnectedState);
 	return buf;
+}
+
+QByteArray
+AdbClient::readLine()
+{
+	while(!m_sock.canReadLine() && m_sock.waitForReadyRead());
+	return m_sock.readLine();
 }
 
 bool
@@ -183,6 +194,26 @@ AdbClient::connectToDevice()
 
 	if(!send(cmd)) {
 		qWarning() << "WARNING: unable to connect to android device";
+		return false;
+	}
+
+	return true;
+}
+
+bool
+AdbClient::forwardTcpPort(int local, int remote)
+{
+	QByteArray cmd;
+	if(aDev->deviceId().isEmpty())
+		cmd = QByteArray("host:");
+	else
+		cmd = QByteArray("host-serial:").append(aDev->deviceId());
+
+	cmd.append("forward:tcp:").append(QString::number(local))
+		.append(";tcp:").append(QString::number(remote));
+
+	if(!send(cmd)) {
+		qWarning() << "WARNING: unable to forward port to android device";
 		return false;
 	}
 

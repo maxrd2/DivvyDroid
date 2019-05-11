@@ -23,6 +23,7 @@
 #include "input/devicetouchhandler.h"
 #include "input/devicebuttonhandler.h"
 #include "input/shellkeyboardhandler.h"
+#include "input/monkeyhandler.h"
 
 #include <iostream>
 #include <cstdarg>
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
 	  m_videoThread(nullptr)
 {
 	ui->setupUi(this);
+	ui->screen->setFocusPolicy(Qt::StrongFocus);
 	ui->screen->setFocus();
 }
 
@@ -64,34 +66,46 @@ MainWindow::init()
 	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
 	m_videoThread->start();
 
-	// init keyboard
-	ui->screen->setFocusPolicy(Qt::StrongFocus);
-	ShellKeyboardHandler *keyboardHandler = new ShellKeyboardHandler(this);
-	if(keyboardHandler->init())
-		ui->screen->installEventFilter(keyboardHandler);
+	// init monkey
+	MonkeyHandler *monkeyHandler = new MonkeyHandler(this);
+	const bool monkeyOk = monkeyHandler->init(WidgetKeyMap{
+			   { ui->btnHome, KEY_HOMEPAGE },
+			   { ui->btnMenu, KEY_MENU },
+			   { ui->btnBack, KEY_BACK },
+			   { ui->btnVolumeDown, KEY_VOLUMEDOWN },
+			   { ui->btnVolumeUp, KEY_VOLUMEUP },
+			   { ui->btnPower, KEY_POWER },
+			   { ui->screen, BTN_TOUCH }});
+	if(!monkeyOk) {
+		DeviceInfo::initInput();
+		// init keyboard
+		ShellKeyboardHandler *keyboardHandler = new ShellKeyboardHandler(this);
+		if(keyboardHandler->init())
+			ui->screen->installEventFilter(keyboardHandler);
 
-	// init touch
-	DeviceTouchHandler *touchHandler = new DeviceTouchHandler(this);
-	if(touchHandler->init())
-		ui->screen->installEventFilter(touchHandler);
+		// init touch
+		DeviceTouchHandler *touchHandler = new DeviceTouchHandler(this);
+		if(touchHandler->init())
+			ui->screen->installEventFilter(touchHandler);
 
-	// init bottom keys
-	(new DeviceButtonHandler(this))->init(
-		aDev->inputHome(),
-		WidgetKeyMap{{ ui->btnHome, KEY_HOMEPAGE }});
-	(new DeviceButtonHandler(this))->init(
-		aDev->inputBack(),
-		WidgetKeyMap{{ ui->btnMenu, KEY_MENU }, { ui->btnBack, KEY_BACK }});
+		// init bottom keys
+		(new DeviceButtonHandler(this))->init(
+			aDev->inputHome(),
+			WidgetKeyMap{{ ui->btnHome, KEY_HOMEPAGE }});
+		(new DeviceButtonHandler(this))->init(
+			aDev->inputBack(),
+			WidgetKeyMap{{ ui->btnMenu, KEY_MENU }, { ui->btnBack, KEY_BACK }});
 
-	// init volume keys
-	(new DeviceButtonHandler(this))->init(
-		aDev->inputVolume(),
-		WidgetKeyMap{{ ui->btnVolumeDown, KEY_VOLUMEDOWN }, { ui->btnVolumeUp, KEY_VOLUMEUP }});
+		// init volume keys
+		(new DeviceButtonHandler(this))->init(
+			aDev->inputVolume(),
+			WidgetKeyMap{{ ui->btnVolumeDown, KEY_VOLUMEDOWN }, { ui->btnVolumeUp, KEY_VOLUMEUP }});
 
-	// init power key
-	(new DeviceButtonHandler(this))->init(
-		aDev->inputPower(),
-		WidgetKeyMap{{ ui->btnPower, KEY_POWER }});
+		// init power key
+		(new DeviceButtonHandler(this))->init(
+			aDev->inputPower(),
+			WidgetKeyMap{{ ui->btnPower, KEY_POWER }});
+	}
 
 	// init unlock key
 	connect(ui->btnUnlock, &QPushButton::clicked, [&](){

@@ -51,6 +51,7 @@ public:
 
 	static DeviceList deviceList();
 	static void connect(const char *deviceId = nullptr);
+	static void initInput();
 	static bool waitForDevice();
 protected:
 	DeviceInfo(const char *deviceId = nullptr);

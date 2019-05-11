@@ -38,12 +38,15 @@ typedef QList<AdbEvent> AdbEventList;
 
 class AdbClient : public QObject
 {
+	Q_OBJECT
 public:
 	explicit AdbClient(QObject *parent = nullptr);
 	virtual ~AdbClient();
 
 	void connectToHost() { m_sock.connectToHost(QStringLiteral("localhost"), 5037, QIODevice::ReadWrite); }
 	bool connectToDevice();
+	bool forwardTcpPort(int local, int remote);
+	inline void close() { return m_sock.close(); }
 
 	bool read(void *data, qint64 max);
 	bool write(const void *data, qint64 max);
@@ -54,6 +57,8 @@ public:
 	bool readStatus();
 	QByteArray readResponse();
 	QByteArray readAll();
+	QByteArray readLine();
+	inline QByteArray readAvailable() { return m_sock.readAll(); }
 
 	QImage fetchScreenRaw();
 	QImage fetchScreenPng();
@@ -68,8 +73,10 @@ protected:
 	bool fetchScreenRawInit();
 
 signals:
-
-public slots:
+	void stateChanged(QAbstractSocket::SocketState);
+	void error(QAbstractSocket::SocketError);
+	void readyRead();
+	void bytesWritten(qint64 bytes);
 
 private:
 	QTcpSocket m_sock;

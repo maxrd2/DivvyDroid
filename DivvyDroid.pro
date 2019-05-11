@@ -33,6 +33,7 @@ SOURCES += \
         input/devicetouchhandler.cpp \
         input/input_to_adroid_keys.cpp \
         input/inputhandler.cpp \
+        input/monkeyhandler.cpp \
         input/shellkeyboardhandler.cpp \
         main.cpp \
         mainwindow.cpp
@@ -47,6 +48,7 @@ HEADERS += \
         input/input_event_codes.h \
         input/input_to_adroid_keys.h \
         input/inputhandler.h \
+        input/monkeyhandler.h \
         input/shellkeyboardhandler.h \
         mainwindow.h
 
