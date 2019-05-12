@@ -19,10 +19,11 @@
 #ifndef MONKEYHANDLER_H
 #define MONKEYHANDLER_H
 
-#include <QTcpSocket>
-
 #include "device/adbclient.h"
 #include "input/inputhandler.h"
+
+#include <QTcpSocket>
+#include <QTimer>
 
 class MonkeyHandler : public InputHandler
 {
@@ -36,18 +37,21 @@ public:
 protected:
 	bool eventFilter(QObject *obj, QEvent *ev) override;
 
+private slots:
+	void sendWheelEvents();
+
 private:
 	bool init() override { return false; }
 
 	static AdbClient m_daemon;
 	static bool m_daemonReady;
-//	AdbClient m_port;
 	AdbClient m_monkey;
-//	QTcpSocket m_monkey;
 
 	WidgetKeyMap m_keyMap;
+	QTimer m_wheelTimer;
+	int m_wheelX;
+	int m_wheelY;
 	bool m_inputMouseDown;
-	qint32 m_lastTouchId;
 };
 
 #endif // MONKEYHANDLER_H

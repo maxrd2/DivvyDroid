@@ -35,9 +35,10 @@ bool MonkeyHandler::m_daemonReady = false;
 
 MonkeyHandler::MonkeyHandler(QObject *parent)
 	: InputHandler(parent),
-	  m_inputMouseDown(false),
-	  m_lastTouchId(33)
+	  m_inputMouseDown(false)
 {
+	connect(&m_wheelTimer, &QTimer::timeout, this, &MonkeyHandler::sendWheelEvents);
+	m_wheelTimer.setSingleShot(true);
 }
 
 MonkeyHandler::~MonkeyHandler()
@@ -100,6 +101,15 @@ MonkeyHandler::init(const WidgetKeyMap &keyMap)
 	return true;
 }
 
+void
+MonkeyHandler::sendWheelEvents()
+{
+	qDebug() << "MOUSE SCROLL UP" << m_wheelX << "," << m_wheelY;
+	m_monkey.write(QByteArray("touch up ")
+				   .append(QString::number(m_wheelX)).append(' ')
+				   .append(QString::number(m_wheelY)).append("\n"));
+}
+
 bool
 MonkeyHandler::eventFilter(QObject *obj, QEvent *ev)
 {
@@ -111,6 +121,38 @@ MonkeyHandler::eventFilter(QObject *obj, QEvent *ev)
 	QKeyEvent *kev = reinterpret_cast<QKeyEvent *>(ev);
 
 	switch(ev->type()) {
+	case QEvent::Wheel:
+		if(keyCode == BTN_TOUCH) {
+			const QWheelEvent *wev = reinterpret_cast<QWheelEvent *>(ev);
+			QPoint delta = wev->angleDelta() / 8;
+			if(delta.isNull())
+					delta = wev->pixelDelta();
+			if(delta.isNull())
+					break;
+
+			if(!m_wheelTimer.isActive()) {
+				m_wheelX = wev->x() * aDev->screenWidth() / widget->width();
+				m_wheelY = wev->y() * aDev->screenHeight() / widget->height();
+			}
+
+			if(!m_wheelTimer.isActive()) {
+				qDebug() << "MOUSE SCROLL DOWN" << m_wheelX << "," << m_wheelY;
+				m_monkey.write(QByteArray("touch down ")
+							   .append(QString::number(m_wheelX)).append(' ')
+							   .append(QString::number(m_wheelY)).append("\n"));
+			} else {
+				qDebug() << "MOUSE SCROLL MOVE" << m_wheelX << "," << m_wheelY;
+				m_monkey.write(QByteArray("touch move ")
+							   .append(QString::number(m_wheelX)).append(' ')
+							   .append(QString::number(m_wheelY)).append("\n"));
+			}
+
+			m_wheelY += 8 * delta.ry();
+
+			m_wheelTimer.start(150);
+			return true;
+		}
+		break;
 	case QEvent::MouseButtonPress:
 		if(keyCode == BTN_TOUCH) {
 			m_inputMouseDown = true;
