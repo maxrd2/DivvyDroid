@@ -299,6 +299,9 @@ AdbClient::fetchScreenRaw()
 		}
 	}
 
+	m_sock.readAll();
+	m_sock.waitForDisconnected();
+
 	qDebug() << "FRAMEBUFFER RAW frame retrieved in" << timer.elapsed() << "ms";
 
 	return img;
