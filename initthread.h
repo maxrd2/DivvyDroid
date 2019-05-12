@@ -16,44 +16,28 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef INITTHREAD_H
+#define INITTHREAD_H
 
-#include <QMainWindow>
-#include <QTimer>
-#include "device/adbclient.h"
-#include "device/videothread.h"
-#include "initthread.h"
+#include "input/inputhandler.h"
 
-namespace Ui {
-class MainWindow;
-}
+#include <QThread>
 
-class MainWindow : public QMainWindow
+#define IMAGE_WIDTH 360
+
+class InitThread : public QThread
 {
 	Q_OBJECT
-
 public:
-	explicit MainWindow(QWidget *parent = nullptr);
-	~MainWindow();
+	InitThread(QObject *parent = nullptr);
+	~InitThread();
 
-	void init();
+signals:
+	void deviceConnected();
+	void inputReady();
 
 protected:
-	void sendMouseDown();
-
-public slots:
-	void onDeviceReady();
-	void onInputReady();
-	void updateScreen(const QImage &image);
-
-private:
-	Ui::MainWindow *ui;
-
-	InitThread *m_initThread;
-	VideoThread *m_videoThread;
-
-	AdbClient m_adbTouch;
+    void run();
 };
 
-#endif // MAINWINDOW_H
+#endif // INITTHREAD_H

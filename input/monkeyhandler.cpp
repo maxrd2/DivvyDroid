@@ -30,6 +30,9 @@
 #include "input/input_to_adroid_keys.h"
 #include "input/android_keycodes.h"
 
+AdbClient MonkeyHandler::m_daemon;
+bool MonkeyHandler::m_daemonReady = false;
+
 MonkeyHandler::MonkeyHandler(QObject *parent)
 	: InputHandler(parent),
 	  m_inputMouseDown(false),
@@ -42,21 +45,31 @@ MonkeyHandler::~MonkeyHandler()
 	m_monkey.write("quit\n");
 }
 
+/*static*/ void
+MonkeyHandler::initDaemon()
+{
+	m_daemonReady = false;
+
+	if(!m_daemon.connectToDevice())
+		return;
+	if(!m_daemon.send(QByteArray("shell:monkey --port 33333")))
+		return;
+
+	disconnect(&m_daemon, &AdbClient::readyRead, nullptr, nullptr);
+	connect(&m_daemon, &AdbClient::readyRead, [&](){
+		qDebug() << "MONKEYHANDLER daemon:" << m_daemon.readLine().trimmed();
+	});
+
+	m_daemonReady = true;
+}
+
 bool
 MonkeyHandler::init(const WidgetKeyMap &keyMap)
 {
 	m_keyMap = keyMap;
 
-	// start monkey daemon
-	if(!m_shell.connectToDevice())
+	if(!m_daemonReady)
 		return false;
-	if(!m_shell.send(QByteArray("shell:monkey --port 33333")))
-		return false;
-
-	disconnect(&m_shell, &AdbClient::readyRead, nullptr, nullptr);
-	connect(&m_shell, &AdbClient::readyRead, [&](){
-		qDebug() << "MONKEYHANDLER monkey:" << m_shell.readLine().trimmed();
-	});
 
 	// wait a bit so monkey daemon has time to start
 	for(int i = 0; i < 16; i++) {

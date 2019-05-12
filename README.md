@@ -2,12 +2,17 @@
 
 `DivvyDroid` is an Qt/C++ application for remote controlling you Android device. It implements ADB TCP client. It was written and tested under Linux, but it should also compile under Windows and Mac OS X.
 
-- Requires ADB to be installed, root might be needed on some devices
+- Requires ADB to be installed, root might help on some devices
 - Display Android device screen using screencap (JPEG, PNG, RAW) over ADB TCP
-- Fast and accurate keyboard and touch handling using monkey protocol
-- Fallback to fast touch events by writing directly to /dev/input
-- Fallback to slow adb shell input command
+- Fast and accurate keyboard and touch handling using android monkey and by direct writes to device's /dev/input
+- Fallback to slow adb shell input command, when monkey is unavailable or without permissions to write to /dev/input
+
 ![screenshot](https://user-images.githubusercontent.com/1187381/57383580-5a513e00-71af-11e9-864b-68f31cb5e7b1.png)
+
+## Prerequisites
+
+You need to [install Android Debug Bridge](https://www.xda-developers.com/install-adb-windows-macos-linux/).
+Make sure that `adb` command is in path. Executing `adb devices` should list your phone.
 
 ## Build/Install
 

@@ -23,6 +23,8 @@
 
 #include "device/adbclient.h"
 
+typedef QMap<QObject *, quint16> WidgetKeyMap;
+
 class InputHandler : public QObject
 {
 	Q_OBJECT

@@ -35,6 +35,7 @@ SOURCES += \
         input/inputhandler.cpp \
         input/monkeyhandler.cpp \
         input/shellkeyboardhandler.cpp \
+        initthread.cpp \
         main.cpp \
         mainwindow.cpp
 
@@ -50,6 +51,7 @@ HEADERS += \
         input/inputhandler.h \
         input/monkeyhandler.h \
         input/shellkeyboardhandler.h \
+        initthread.h \
         mainwindow.h
 
 FORMS += \

@@ -24,8 +24,6 @@
 #include "device/adbclient.h"
 #include "input/inputhandler.h"
 
-typedef QMap<QObject *, quint16> WidgetKeyMap;
-
 class MonkeyHandler : public InputHandler
 {
 public:
@@ -33,6 +31,7 @@ public:
 	virtual ~MonkeyHandler();
 
 	bool init(const WidgetKeyMap &keyMap);
+	static void initDaemon();
 
 protected:
 	bool eventFilter(QObject *obj, QEvent *ev) override;
@@ -40,7 +39,8 @@ protected:
 private:
 	bool init() override { return false; }
 
-	AdbClient m_shell;
+	static AdbClient m_daemon;
+	static bool m_daemonReady;
 //	AdbClient m_port;
 	AdbClient m_monkey;
 //	QTcpSocket m_monkey;

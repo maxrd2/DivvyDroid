@@ -16,44 +16,42 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-
-#include <QMainWindow>
-#include <QTimer>
-#include "device/adbclient.h"
-#include "device/videothread.h"
 #include "initthread.h"
 
-namespace Ui {
-class MainWindow;
+#include "device/deviceinfo.h"
+#include "input/monkeyhandler.h"
+
+#include <QApplication>
+#include <QWidget>
+
+InitThread::InitThread(QObject *parent)
+	: QThread(parent)
+{
+
 }
 
-class MainWindow : public QMainWindow
+InitThread::~InitThread()
 {
-	Q_OBJECT
+	requestInterruption();
+	wait();
+}
 
-public:
-	explicit MainWindow(QWidget *parent = nullptr);
-	~MainWindow();
+void
+InitThread::run()
+{
+	// start adb server and wait for device
+	if(!DeviceInfo::waitForDevice()) {
+		QApplication::quit();
+		return;
+	}
 
-	void init();
+//	DeviceList devices = DeviceInfo::deviceList();
+//	DeviceInfo::connect(devices.firstKey());
+	DeviceInfo::connect();
 
-protected:
-	void sendMouseDown();
+	emit deviceConnected();
 
-public slots:
-	void onDeviceReady();
-	void onInputReady();
-	void updateScreen(const QImage &image);
+	DeviceInfo::initInput();
 
-private:
-	Ui::MainWindow *ui;
-
-	InitThread *m_initThread;
-	VideoThread *m_videoThread;
-
-	AdbClient m_adbTouch;
-};
-
-#endif // MAINWINDOW_H
+	emit inputReady();
+}

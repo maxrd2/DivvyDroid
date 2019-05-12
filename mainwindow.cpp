@@ -20,13 +20,11 @@
 #include "ui_mainwindow.h"
 
 #include "device/deviceinfo.h"
+#include "input/inputhandler.h"
 #include "input/devicetouchhandler.h"
 #include "input/devicebuttonhandler.h"
 #include "input/shellkeyboardhandler.h"
 #include "input/monkeyhandler.h"
-
-#include <iostream>
-#include <cstdarg>
 
 #include <QMouseEvent>
 #include <QDebug>
@@ -34,6 +32,7 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent),
 	  ui(new Ui::MainWindow),
+	  m_initThread(nullptr),
 	  m_videoThread(nullptr)
 {
 	ui->setupUi(this);
@@ -41,19 +40,25 @@ MainWindow::MainWindow(QWidget *parent)
 	ui->screen->setFocus();
 }
 
+MainWindow::~MainWindow()
+{
+	delete m_initThread;
+	delete m_videoThread;
+	delete ui;
+}
+
 void
 MainWindow::init()
 {
-	// start adb server and wait for device
-	if(!DeviceInfo::waitForDevice()) {
-		QApplication::quit();
-		return;
-	}
+	m_initThread = new InitThread();
+	connect(m_initThread, &InitThread::deviceConnected, this, &MainWindow::onDeviceReady);
+	connect(m_initThread, &InitThread::inputReady, this, &MainWindow::onInputReady);
+	m_initThread->start();
+}
 
-//	DeviceList devices = DeviceInfo::deviceList();
-//	DeviceInfo::connect(devices.firstKey());
-	DeviceInfo::connect();
-
+void
+MainWindow::onDeviceReady()
+{
 	// make window fixed size
 	QPixmap img(IMAGE_WIDTH, IMAGE_WIDTH * aDev->screenHeight() / aDev->screenWidth());
 	img.fill(Qt::black);
@@ -61,51 +66,51 @@ MainWindow::init()
 	adjustSize();
 	setFixedSize(sizeHint());
 
-	// video thread
-	m_videoThread = new VideoThread();
-	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
-	m_videoThread->start();
+	// init monkey daemon
+	MonkeyHandler::initDaemon();
+}
+
+void
+MainWindow::onInputReady()
+{
+	// init keyboard
+	ShellKeyboardHandler *keyboardHandler = new ShellKeyboardHandler(this);
+	if(keyboardHandler->init())
+		ui->screen->installEventFilter(keyboardHandler);
 
 	// init monkey
 	MonkeyHandler *monkeyHandler = new MonkeyHandler(this);
-	const bool monkeyOk = monkeyHandler->init(WidgetKeyMap{
-			   { ui->btnHome, KEY_HOMEPAGE },
-			   { ui->btnMenu, KEY_MENU },
-			   { ui->btnBack, KEY_BACK },
-			   { ui->btnVolumeDown, KEY_VOLUMEDOWN },
-			   { ui->btnVolumeUp, KEY_VOLUMEUP },
-			   { ui->btnPower, KEY_POWER },
-			   { ui->screen, BTN_TOUCH }});
-	if(!monkeyOk) {
-		DeviceInfo::initInput();
-		// init keyboard
-		ShellKeyboardHandler *keyboardHandler = new ShellKeyboardHandler(this);
-		if(keyboardHandler->init())
-			ui->screen->installEventFilter(keyboardHandler);
+	monkeyHandler->init(WidgetKeyMap{
+		{ ui->btnHome, KEY_HOMEPAGE },
+		{ ui->btnMenu, KEY_MENU },
+		{ ui->btnBack, KEY_BACK },
+		{ ui->btnVolumeDown, KEY_VOLUMEDOWN },
+		{ ui->btnVolumeUp, KEY_VOLUMEUP },
+		{ ui->btnPower, KEY_POWER },
+		{ ui->screen, BTN_TOUCH }});
 
-		// init touch
-		DeviceTouchHandler *touchHandler = new DeviceTouchHandler(this);
-		if(touchHandler->init())
-			ui->screen->installEventFilter(touchHandler);
+	// init touch
+	DeviceTouchHandler *touchHandler = new DeviceTouchHandler(this);
+	if(touchHandler->init())
+		ui->screen->installEventFilter(touchHandler);
 
-		// init bottom keys
-		(new DeviceButtonHandler(this))->init(
-			aDev->inputHome(),
-			WidgetKeyMap{{ ui->btnHome, KEY_HOMEPAGE }});
-		(new DeviceButtonHandler(this))->init(
-			aDev->inputBack(),
-			WidgetKeyMap{{ ui->btnMenu, KEY_MENU }, { ui->btnBack, KEY_BACK }});
+	// init bottom keys
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputHome(),
+		WidgetKeyMap{{ ui->btnHome, KEY_HOMEPAGE }});
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputBack(),
+		WidgetKeyMap{{ ui->btnMenu, KEY_MENU }, { ui->btnBack, KEY_BACK }});
 
-		// init volume keys
-		(new DeviceButtonHandler(this))->init(
-			aDev->inputVolume(),
-			WidgetKeyMap{{ ui->btnVolumeDown, KEY_VOLUMEDOWN }, { ui->btnVolumeUp, KEY_VOLUMEUP }});
+	// init volume keys
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputVolume(),
+		WidgetKeyMap{{ ui->btnVolumeDown, KEY_VOLUMEDOWN }, { ui->btnVolumeUp, KEY_VOLUMEUP }});
 
-		// init power key
-		(new DeviceButtonHandler(this))->init(
-			aDev->inputPower(),
-			WidgetKeyMap{{ ui->btnPower, KEY_POWER }});
-	}
+	// init power key
+	(new DeviceButtonHandler(this))->init(
+		aDev->inputPower(),
+		WidgetKeyMap{{ ui->btnPower, KEY_POWER }});
 
 	// init unlock key
 	connect(ui->btnUnlock, &QPushButton::clicked, [&](){
@@ -118,15 +123,15 @@ MainWindow::init()
 		}
 		AdbClient::shell("wm dismiss-keyguard");
 	});
+
+	// start video thread
+	m_videoThread = new VideoThread();
+	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
+	m_videoThread->start();
 }
 
 void
 MainWindow::updateScreen(const QImage &image)
 {
 	ui->screen->setPixmap(QPixmap::fromImage(image));
-}
-
-MainWindow::~MainWindow()
-{
-	delete ui;
 }

@@ -24,8 +24,6 @@
 #include <QMap>
 #include <QElapsedTimer>
 
-typedef QMap<QObject *, quint16> WidgetKeyMap;
-
 class DeviceButtonHandler : public InputHandler
 {
 public:
