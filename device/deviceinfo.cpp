@@ -39,8 +39,7 @@ DeviceInfo::waitForDevice()
 {
 	QProcess shell;
 	shell.start(QStringLiteral("adb"), QStringList() << QStringLiteral("wait-for-device"));
-	shell.waitForFinished();
-	if(shell.exitCode()) {
+	if(!shell.waitForFinished() || shell.exitCode()) {
 		qWarning() << "Failed to start adb server.";
 		return false;
 	}
