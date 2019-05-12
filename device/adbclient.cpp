@@ -227,11 +227,11 @@ AdbClient::fetchScreenRawInit()
 		return false;
 
 	if(!send("framebuffer:")) {
-		qWarning() << "WARNING: unable to connect to framebuffer";
+		qWarning() << "FRAMEBUFFER unable to connect to framebuffer";
 		return false;
 	}
 	if(!read(&m_fbInfo.version, sizeof(m_fbInfo.version))) {
-		qDebug() << __FUNCTION__ << "failed: reading framebuffer version";
+		qDebug() << "FRAMEBUFFER error reading framebuffer version";
 		return false;
 	}
 
@@ -241,7 +241,7 @@ AdbClient::fetchScreenRawInit()
 		qDebug() << "FRAMEBUFFER v0";
 		res = read(&m_fbInfo.v0, sizeof(m_fbInfo.v0));
 		if(!write("0", 1)) {
-			qDebug() << __FUNCTION__ << "failed: writing v0 request";
+			qDebug() << "FRAMEBUFFER error writing v0 request";
 			return false;
 		}
 		break;
@@ -260,7 +260,7 @@ AdbClient::fetchScreenRawInit()
 		break;
 	}
 	if(!res) {
-		qDebug() << __FUNCTION__ << "failed: reading framebuffer info";
+		qDebug() << "FRAMEBUFFER error reading framebuffer info";
 		return false;
 	}
 
@@ -282,7 +282,7 @@ AdbClient::fetchScreenRaw()
 	QImage img(m_fbInfo.width(), m_fbInfo.height(), m_fbInfo.format());
 	for(int y = 0, h = img.height(); y < h; y++) {
 		if(!read(img.scanLine(y), bytesPerLine)) {
-			qDebug() << __FUNCTION__ << "failed: reading framebuffer frame";
+			qDebug() << "FRAMEBUFFER error reading framebuffer frame";
 			return img;
 		}
 	}
@@ -299,7 +299,7 @@ AdbClient::fetchScreenRaw()
 		}
 	}
 
-	qDebug() << "SCREEN frame retrieved in" << timer.elapsed() << "ms";
+	qDebug() << "FRAMEBUFFER RAW frame retrieved in" << timer.elapsed() << "ms";
 
 	return img;
 }
@@ -314,12 +314,12 @@ AdbClient::fetchScreenPng()
 		return QImage();
 
 	if(!send("shell:/system/bin/screencap -p")) {
-		qWarning() << "WARNING: unable to execute shell command";
+		qWarning() << "FRAMEBUFFER error executing PNG screencap";
 		return QImage();
 	}
 
 	QByteArray res = readAll();
-	qDebug() << "SCREEN frame retrieved in" << timer.elapsed() << "ms";
+	qDebug() << "FRAMEBUFFER PNG frame retrieved in" << timer.elapsed() << "ms";
 
 	return QImage::fromData(res);
 }
@@ -339,7 +339,7 @@ AdbClient::fetchScreenJpeg()
 	}
 
 	QByteArray res = readAll();
-	qDebug() << "SCREEN frame retrieved in" << timer.elapsed() << "ms";
+	qDebug() << "SCREEN JPEG frame retrieved in" << timer.elapsed() << "ms";
 
 	return QImage::fromData(res);
 }
