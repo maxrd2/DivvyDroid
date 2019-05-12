@@ -36,26 +36,42 @@ VideoThread::~VideoThread()
 void
 VideoThread::run()
 {
-	bool canJpeg = true;
-	bool canPng = true;
+	bool canJpeg = false;
+	bool canPng = false;
 	bool canRaw = true;
 	AdbClient adb;
+
+	for(;;) {
+		if(isInterruptionRequested())
+			return;
+		if(adb.connectToDevice()) {
+			if(!adb.send("shell:/system/bin/screencap -h")) {
+				qWarning() << "WARNING: unable to execute screencap";
+				return;
+			}
+			const QList<QByteArray> res = adb.readAll().split('\n');
+			for(QByteArray line : res) {
+				if(line.trimmed().startsWith("-j:"))
+					canJpeg = true;
+				else if(line.trimmed().startsWith("-p:"))
+					canPng = true;
+			}
+			break;
+		}
+		msleep(100);
+	}
 
 	while(!isInterruptionRequested()) {
 		QImage img;
 		if(aDev->isScreenAwake()) {
-			if(canJpeg) {
+			if(canJpeg)
 				img = adb.fetchScreenJpeg();
-				canJpeg = !img.isNull();
-			} else if(canRaw) {
+			else if(canRaw)
 				img = adb.fetchScreenRaw();
-				canRaw = !img.isNull();
-			} else if(canPng) {
+			else if(canPng)
 				img = adb.fetchScreenPng();
-				canPng = !img.isNull();
-			} else {
+			else
 				return;
-			}
 		} else {
 			img = QImage(IMAGE_WIDTH, IMAGE_WIDTH * aDev->screenHeight() / aDev->screenWidth(), QImage::Format_RGB888);
 			img.fill(Qt::black);
