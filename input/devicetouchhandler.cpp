@@ -19,6 +19,7 @@
 #include "devicetouchhandler.h"
 
 #include <QMouseEvent>
+#include <QWheelEvent>
 #include <QWidget>
 #include <QDebug>
 
@@ -29,6 +30,8 @@ DeviceTouchHandler::DeviceTouchHandler(QObject *parent)
 	  m_inputMouseDown(false),
 	  m_lastTouchId(33)
 {
+	connect(&m_wheelTimer, &QTimer::timeout, this, &DeviceTouchHandler::sendWheelEvents);
+	m_wheelTimer.setSingleShot(true);
 }
 
 DeviceTouchHandler::~DeviceTouchHandler()
@@ -51,15 +54,73 @@ DeviceTouchHandler::init()
 	return true;
 }
 
+void
+DeviceTouchHandler::sendWheelEvents()
+{
+	qDebug() << "MOUSE SCROLL UP" << m_wheelX << "," << m_wheelY;
+	m_adb.sendEvents(AdbEventList()
+			<< AdbEvent(EV_ABS, ABS_MT_TRACKING_ID, m_lastTouchId)
+			<< AdbEvent(EV_ABS, ABS_MT_POSITION_X, m_wheelX)
+			<< AdbEvent(EV_ABS, ABS_MT_POSITION_Y, m_wheelY)
+			<< AdbEvent(EV_ABS, ABS_X, m_wheelX)
+			<< AdbEvent(EV_ABS, ABS_Y, m_wheelY)
+			<< AdbEvent(EV_SYN)
+			<< AdbEvent(EV_KEY, BTN_TOUCH, 0)
+			<< AdbEvent(EV_SYN));
+}
+
 bool
 DeviceTouchHandler::eventFilter(QObject *obj, QEvent *ev)
 {
 	Q_ASSERT(obj->objectName() == QStringLiteral("screen"));
 
-	QWidget *screen = reinterpret_cast<QWidget *>(obj);
-	QMouseEvent *mev = reinterpret_cast<QMouseEvent *>(ev);
+	const QWidget *screen = reinterpret_cast<QWidget *>(obj);
+	const QMouseEvent *mev = reinterpret_cast<QMouseEvent *>(ev);
 
 	switch(ev->type()) {
+	case QEvent::Wheel: {
+		const QWheelEvent *wev = reinterpret_cast<QWheelEvent *>(ev);
+		QPoint delta = wev->angleDelta() / 8;
+		if(delta.isNull())
+				delta = wev->pixelDelta();
+		if(delta.isNull())
+				break;
+
+		if(!m_wheelTimer.isActive()) {
+			m_wheelX = wev->x() * aDev->screenWidth() / screen->width();
+			m_wheelY = wev->y() * aDev->screenHeight() / screen->height();
+		}
+
+		if(!m_wheelTimer.isActive()) {
+			qDebug() << "MOUSE SCROLL DOWN" << m_wheelX << "," << m_wheelY;
+			m_adb.sendEvents(AdbEventList()
+					<< AdbEvent(EV_ABS, ABS_MT_TRACKING_ID, ++m_lastTouchId)
+					<< AdbEvent(EV_ABS, ABS_MT_PRESSURE, 40)
+					<< AdbEvent(EV_ABS, ABS_MT_DISTANCE, 0)
+					<< AdbEvent(EV_ABS, ABS_MT_TOUCH_MAJOR, 1)
+					<< AdbEvent(EV_ABS, ABS_MT_WIDTH_MAJOR, 10)
+					<< AdbEvent(EV_ABS, ABS_MT_POSITION_X, m_wheelX)
+					<< AdbEvent(EV_ABS, ABS_MT_POSITION_Y, m_wheelY)
+					<< AdbEvent(EV_ABS, ABS_X, m_wheelX)
+					<< AdbEvent(EV_ABS, ABS_Y, m_wheelY)
+					<< AdbEvent(EV_KEY, BTN_TOUCH, 1)
+					<< AdbEvent(EV_SYN));
+		} else {
+			qDebug() << "MOUSE SCROLL MOVE" << m_wheelX << "," << m_wheelY;
+			m_adb.sendEvents(AdbEventList()
+					<< AdbEvent(EV_ABS, ABS_MT_TRACKING_ID, m_lastTouchId)
+					<< AdbEvent(EV_ABS, ABS_MT_POSITION_X, m_wheelX)
+					<< AdbEvent(EV_ABS, ABS_MT_POSITION_Y, m_wheelY)
+					<< AdbEvent(EV_ABS, ABS_X, m_wheelX)
+					<< AdbEvent(EV_ABS, ABS_Y, m_wheelY)
+					<< AdbEvent(EV_SYN));
+		}
+
+		m_wheelY += 8 * delta.ry();
+
+		m_wheelTimer.start(150);
+		break;
+	}
 	case QEvent::MouseButtonPress: {
 		m_inputMouseDown = true;
 		const int x = mev->x() * aDev->screenWidth() / screen->width();

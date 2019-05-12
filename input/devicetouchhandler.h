@@ -21,6 +21,8 @@
 
 #include "inputhandler.h"
 
+#include <QTimer>
+
 class DeviceTouchHandler : public InputHandler
 {
 public:
@@ -32,7 +34,13 @@ public:
 protected:
 	bool eventFilter(QObject *obj, QEvent *ev) override;
 
+private slots:
+	void sendWheelEvents();
+
 private:
+	QTimer m_wheelTimer;
+	int m_wheelX;
+	int m_wheelY;
 	bool m_inputMouseDown;
 	qint32 m_lastTouchId;
 };
