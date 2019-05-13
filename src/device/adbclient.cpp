@@ -31,7 +31,7 @@ AdbClient::AdbClient(QObject *parent)
 	: QObject(parent)
 {
 	connect(&m_sock, &QTcpSocket::stateChanged, this, &AdbClient::stateChanged);
-	connect(&m_sock, QOverload<QTcpSocket::SocketError>::of(&QTcpSocket::error), this, &AdbClient::error);
+	connect(&m_sock, QOverload<QTcpSocket::SocketError>::of(&QTcpSocket::error), this, &AdbClient::onError);
 	connect(&m_sock, &QTcpSocket::readyRead, this, &AdbClient::readyRead);
 	connect(&m_sock, &QTcpSocket::bytesWritten, this, &AdbClient::bytesWritten);
 #ifdef ADB_DEBUG_CONN
@@ -96,6 +96,13 @@ AdbClient::readLine()
 {
 	while(!m_sock.canReadLine() && m_sock.waitForReadyRead());
 	return m_sock.readLine();
+}
+
+QByteArray
+AdbClient::readAvailable()
+{
+	m_sock.waitForReadyRead();
+	return m_sock.readAll();
 }
 
 bool
@@ -316,7 +323,7 @@ AdbClient::fetchScreenPng()
 	if(!connectToDevice())
 		return QImage();
 
-	if(!send("shell:/system/bin/screencap -p")) {
+	if(!send("shell:screencap -p")) {
 		qWarning() << "FRAMEBUFFER error executing PNG screencap";
 		return QImage();
 	}
@@ -336,8 +343,8 @@ AdbClient::fetchScreenJpeg()
 	if(!connectToDevice())
 		return QImage();
 
-	if(!send("shell:/system/bin/screencap -j")) {
-		qWarning() << "WARNING: unable to execute shell command";
+	if(!send("shell:screencap -j")) {
+		qWarning() << "FRAMEBUFFER error executing JPEG screencap";
 		return QImage();
 	}
 
@@ -345,24 +352,6 @@ AdbClient::fetchScreenJpeg()
 	qDebug() << "SCREEN JPEG frame retrieved in" << timer.elapsed() << "ms";
 
 	return QImage::fromData(res);
-}
-
-void
-AdbClient::fetchScreenX264()
-{
-//	# dumpsys window displays | head -n 4
-//	WINDOW MANAGER DISPLAY CONTENTS (dumpsys window displays)
-//	  Display: mDisplayId=0
-//		init=1080x1920 480dpi cur=1080x1920 app=1080x1920 rng=1080x1008-1920x1848
-//		deferred=false layoutNeeded=false
-
-//	# dumpsys display | grep -P '(mScreenState|mDisplayWidth|mDisplayHeight)'
-//	mScreenState=OFF
-//	mDisplayWidth=1080
-//	mDisplayHeight=1920
-
-
-//	# screenrecord --size 720x1280 --output-format=h264 -
 }
 
 /*static*/ QByteArray

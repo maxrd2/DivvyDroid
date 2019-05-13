@@ -47,7 +47,10 @@ public:
 	bool connectToDevice();
 	bool forwardTcpPort(int local, int remote);
 	inline void close() { m_sock.close(); }
-	inline bool waitForDisconnected() { return m_sock.waitForDisconnected(); }
+	inline bool waitForDisconnected(int msecs = -1) { return m_sock.waitForDisconnected(msecs); }
+	inline bool waitForReadyRead(int msecs = -1) { return m_sock.waitForReadyRead(msecs); }
+	inline QTcpSocket::SocketError error() { return m_sock.error(); }
+	inline qint64 bytesAvailable() { return m_sock.bytesAvailable(); }
 
 	bool read(void *data, qint64 max);
 	bool write(const void *data, qint64 max);
@@ -59,12 +62,11 @@ public:
 	QByteArray readResponse();
 	QByteArray readAll();
 	QByteArray readLine();
-	inline QByteArray readAvailable() { return m_sock.readAll(); }
+	QByteArray readAvailable();
 
 	QImage fetchScreenRaw();
 	QImage fetchScreenPng();
 	QImage fetchScreenJpeg();
-	void fetchScreenX264();
 
 	static QByteArray shell(const char *cmd);
 	bool sendEvents(AdbEventList events);
@@ -75,7 +77,7 @@ protected:
 
 signals:
 	void stateChanged(QAbstractSocket::SocketState);
-	void error(QAbstractSocket::SocketError);
+	void onError(QAbstractSocket::SocketError);
 	void readyRead();
 	void bytesWritten(qint64 bytes);
 

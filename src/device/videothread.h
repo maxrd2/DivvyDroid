@@ -21,7 +21,15 @@
 
 #include <QThread>
 
+#include "adbclient.h"
+
 #define IMAGE_WIDTH 360
+
+struct AVFormatContext;
+struct AVStream;
+struct AVCodecContext;
+struct SwsContext;
+struct AVFrame;
 
 class VideoThread : public QThread
 {
@@ -30,16 +38,29 @@ public:
 	VideoThread(QObject *parent = nullptr);
 	~VideoThread();
 
-	void setWidth(int width) { m_imageWidth = width; }
-
 signals:
     void imageReady(const QImage &image);
 
 protected:
-    void run();
+	void run();
 
 private:
+	const char * h264Error(int errorCode);
+	bool h264Init();
+	int h264VideoStreamIndex();
+	bool h264Process();
+	void h264Exit();
+
+	AdbClient *m_adb;
 	int m_imageWidth;
+	int m_imageHeight;
+
+	AVFormatContext *m_avFormat;
+	AVStream *m_avStream;
+	AVCodecContext *m_codecCtx;
+	SwsContext *m_swsContext;
+	AVFrame *m_frame;
+	AVFrame *m_rgbFrame;
 };
 
 #endif // VIDEOTHREAD_H
