@@ -46,7 +46,8 @@ public:
 	void connectToHost() { m_sock.connectToHost(QStringLiteral("localhost"), 5037, QIODevice::ReadWrite); }
 	bool connectToDevice();
 	bool forwardTcpPort(int local, int remote);
-	inline void close() { return m_sock.close(); }
+	inline void close() { m_sock.close(); }
+	inline bool waitForDisconnected() { return m_sock.waitForDisconnected(); }
 
 	bool read(void *data, qint64 max);
 	bool write(const void *data, qint64 max);

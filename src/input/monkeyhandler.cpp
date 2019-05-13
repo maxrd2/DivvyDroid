@@ -44,6 +44,7 @@ MonkeyHandler::MonkeyHandler(QObject *parent)
 MonkeyHandler::~MonkeyHandler()
 {
 	m_monkey.write("quit\n");
+	m_monkey.waitForDisconnected();
 }
 
 /*static*/ void
