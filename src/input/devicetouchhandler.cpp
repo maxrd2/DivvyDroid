@@ -47,7 +47,7 @@ DeviceTouchHandler::init()
 
 	m_adb.connectToDevice();
 	if(!m_adb.send(QByteArray("dev:").append(INPUT_DEV_PATH).append(QString::number(aDev->inputTouch())))) {
-		qDebug() << __FUNCTION__ << "failed opening device" << aDev->inputTouch();
+		qDebug() << __FUNCTION__ << "failed opening device" << aDev->inputTouch() << "will send touch events using fallback";
 		return false;
 	}
 

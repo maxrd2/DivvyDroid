@@ -40,7 +40,7 @@ bool
 DeviceButtonHandler::init(int deviceNr, const WidgetKeyMap &keyMap)
 {
 	if(deviceNr == -1 || !InputHandler::init() || !m_adb.send(QByteArray("dev:").append(INPUT_DEV_PATH).append(QString::number(deviceNr)))) {
-		qDebug() << __FUNCTION__ << "failed opening device" << deviceNr << "will send event using shell";
+		qDebug() << __FUNCTION__ << "failed opening device" << deviceNr << "will send button events using fallback";
 		m_useDevice = false;
 	}
 

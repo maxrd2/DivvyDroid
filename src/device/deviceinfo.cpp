@@ -30,6 +30,7 @@ DeviceInfo::DeviceInfo(const char *deviceId)
 	  m_inputTouch(-1),
 	  m_inputPower(-1),
 	  m_inputHome(-1),
+	  m_inputBack(-1),
 	  m_inputVolume(-1)
 {
 }
@@ -110,15 +111,22 @@ DeviceInfo::connect(const char *deviceId)
 	aDev->m_screenWidth = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
 	i = res.indexOf("DisplayHeight");
 	aDev->m_screenHeight = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
+
+	qDebug() << "DEVICE connected"
+			 << "screen:" << aDev->m_screenWidth << 'x' << aDev->m_screenHeight
+			 << "arch:" << (aDev->m_arch64 ? "64-bit" : "32-bit");
 }
 
 void
 DeviceInfo::initInput()
 {
 	// enumerate input devices
-	QList<QByteArray> inputs = AdbClient::shell("ls -d " INPUT_SYS_PATH "*").simplified().split(' ');
+	QList<QByteArray> inputs = AdbClient::shell("ls -d " INPUT_SYS_PATH "* 2>/dev/null").simplified().split(' ');
 
 	for(const QByteArray &input : inputs) {
+		if(input.isEmpty())
+			continue;
+
 		int devIndex = input.mid(sizeof(INPUT_SYS_PATH) - 1).toInt();
 
 		QList<QByteArray> res = AdbClient::shell(QByteArray("cat ")
@@ -126,8 +134,10 @@ DeviceInfo::initInput()
 							   .append(input).append("/capabilities/ev ")
 							   .append(input).append("/capabilities/key ")
 							   .append("2>/dev/null")).split('\n');
-		if(res.size() < 3)
+		if(res.size() < 3) {
+			qDebug() << "INPUT device" << devIndex << "fetching info failed:" << res.join("\\n");
 			continue;
+		}
 
 		QString name = res.at(0).trimmed();
 		int evBits = res.at(1).trimmed().toInt(nullptr, 16);
@@ -171,6 +181,13 @@ DeviceInfo::initInput()
 			qDebug() << "INPUT device" << devIndex << name << "is not supported";
 		}
 	}
+
+	qDebug() << "DEVICE available input devices:"
+			 << " touch:" << aDev->m_inputTouch
+			 << " power:" << aDev->m_inputPower
+			 << " home:" << aDev->m_inputHome
+			 << " back:" << aDev->m_inputBack
+			 << " volume:" << aDev->m_inputVolume;
 }
 
 bool
