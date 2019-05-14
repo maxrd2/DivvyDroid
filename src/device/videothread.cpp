@@ -107,6 +107,8 @@ VideoThread::h264Init()
 		return false;
 	}
 
+	m_avFormat->probesize = 32;
+//	m_avFormat->max_analyze_duration = 0;
 	if((ret = avformat_find_stream_info(m_avFormat, nullptr)) < 0) {
 		qDebug() << "FRAMEBUFFER can't find stream information:" << h264Error(ret);
 		return false;
@@ -274,7 +276,7 @@ VideoThread::run()
 
 	m_adb = new AdbClient();
 
-	if(h264Process())
+	if(h264Process() || isInterruptionRequested())
 		return;
 
 	bool canJpeg = false;
