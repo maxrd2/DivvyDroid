@@ -64,7 +64,9 @@ VideoThread::h264Init()
 		VideoThread *me = reinterpret_cast<VideoThread *>(u);
 		qint64 len = me->m_adb->bytesAvailable();
 		while(len == 0) {
-			const bool res = me->m_adb->waitForReadyRead(300);
+			const bool res = me->m_adb->waitForReadyRead(50);
+			if(me->isInterruptionRequested())
+				return -1;
 			if(!res && me->m_adb->error() != QTcpSocket::SocketTimeoutError)
 				return -1;
 			if(res) {
@@ -195,13 +197,14 @@ VideoThread::h264Process()
 	av_init_packet(&pkt);
 	pkt.data = nullptr;
 	pkt.size = 0;
+	bool res = false;
 
 	while(!isInterruptionRequested()) {
 		int ret = av_read_frame(m_avFormat, &pkt);
 		bool drainDecoder = ret == AVERROR(EAGAIN) || ret == AVERROR_EOF;
 		if(ret < 0 && !drainDecoder) {
 			qDebug() << "FRAMEBUFFER av_read_frame() failed:" << h264Error(ret);
-			continue;
+			break;
 		}
 
 		if(pkt.stream_index == streamIndex || drainDecoder) {
@@ -209,8 +212,7 @@ VideoThread::h264Process()
 			if(ret < 0) {
 				if(ret != AVERROR(EAGAIN)) {
 					qDebug() << "FRAMEBUFFER avcodec_send_packet() failed:" << h264Error(ret);
-					h264Exit();
-					return false;
+					break;
 				}
 				continue;
 			}
@@ -221,8 +223,7 @@ VideoThread::h264Process()
 					break;
 				if(ret < 0) {
 					qDebug() << "FRAMEBUFFER avcodec_receive_frame() failed:" << h264Error(ret);
-					h264Exit();
-					return false;
+					break;
 				}
 
 				if(sws_scale(m_swsContext, m_frame->data, m_frame->linesize, 0, m_codecCtx->height, m_rgbFrame->data, m_rgbFrame->linesize) != m_imageHeight) {
@@ -234,6 +235,7 @@ VideoThread::h264Process()
 						memcpy(img.scanLine(y), data, img.bytesPerLine());
 						data += m_rgbFrame->linesize[0];
 					}
+					res = true;
 					emit imageReady(img);
 				}
 			}
@@ -246,7 +248,7 @@ VideoThread::h264Process()
 	}
 
 	h264Exit();
-	return true;
+	return res;
 }
 
 void
