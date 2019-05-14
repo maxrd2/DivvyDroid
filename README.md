@@ -1,8 +1,8 @@
 # DivvyDroid [![TravisCI build](https://travis-ci.org/maxrd2/DivvyDroid.svg?branch=master)](https://travis-ci.org/maxrd2/DivvyDroid)
 
-`DivvyDroid` is an Qt/C++ application for remote controlling you Android device. It implements ADB TCP client. It was written and tested under Linux, but it should also compile under Windows and Mac OS X.
+`DivvyDroid` is an Qt/C++ application for remote controlling you Android device. It implements ADB TCP client. It was written under Linux and tested on Windows, Mac OS X.
 
-- Requires ADB to be installed, root might help on some devices
+- Requires ADB to be installed and in PATH, root will help on some devices
 - Direct device communication over internal ADB client and TCP
 - Fast android device display streaming using screenrecord (H.264)
 - Fast and accurate keyboard and touch handling using android monkey and by direct writes to device's /dev/input
@@ -18,11 +18,11 @@ Make sure that `adb` command is in path. Executing `adb devices` should list you
 
 ## Build/Install
 
-You will require git, Qt5 and gcc (or clang) compiler.
+You will require git, cmake, Qt5 and FFmpeg.
 ```shell
 git clone https://github.com/maxrd2/DivvyDroid.git && cd DivvyDroid
 mkdir build && cd build
-qmake ..
+cmake ..
 make
 sudo make install
 ```
