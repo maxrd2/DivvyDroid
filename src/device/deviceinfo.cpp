@@ -45,6 +45,11 @@ DeviceInfo::waitForDevice()
 		return false;
 	}
 
+	shell.start(QStringLiteral("adb"), QStringList() << QStringLiteral("root"));
+	if(!shell.waitForFinished() || shell.exitCode()) {
+		qDebug() << "Failed to restart adb server with root permissions.";
+	}
+
 	return true;
 }
 
