@@ -148,7 +148,7 @@ AdbClient::readStatus()
 QByteArray
 AdbClient::readResponse()
 {
-	size_t len = 0;
+	int len = 0;
 	{
 		char tmp[5];
 		if(!read(tmp, 4)) {
@@ -160,9 +160,10 @@ AdbClient::readResponse()
 	}
 
 	if(len) {
-		char res[len + 1];
+		QByteArray res;
+		res.reserve(len + 1);
 		res[0] = res[len] = 0;
-		if(!read(res, len))
+		if(!read(res.data(), len))
 			qDebug() << __FUNCTION__ << "failed: missing response data";
 		return res;
 	}
