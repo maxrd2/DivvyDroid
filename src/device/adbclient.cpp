@@ -378,8 +378,6 @@ AdbClient::shell(const char *cmd)
 bool
 AdbClient::sendEvents(AdbEventList events)
 {
-	QElapsedTimer timer;
-	timer.start();
 	for(const AdbEvent &evt : events) {
 		if(!write(&evt, sizeof(AdbEvent))) {
 			qDebug() << __FUNCTION__ << "failed sending event";
@@ -387,7 +385,6 @@ AdbClient::sendEvents(AdbEventList events)
 		}
 	}
 
-	qDebug() << "EVENTS sent in" << timer.elapsed() << "ms";
 	return true;
 }
 
