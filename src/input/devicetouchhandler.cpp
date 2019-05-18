@@ -119,7 +119,7 @@ DeviceTouchHandler::eventFilter(QObject *obj, QEvent *ev)
 		m_wheelY += 8 * delta.ry();
 
 		m_wheelTimer.start(150);
-		break;
+		return true;
 	}
 	case QEvent::MouseButtonPress: {
 		m_inputMouseDown = true;
