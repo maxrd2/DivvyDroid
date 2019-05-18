@@ -14,7 +14,7 @@
    <string notr="true">DivvyDroid</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="divvydroid.qrc">
+   <iconset resource="../res/divvydroid.qrc">
     <normaloff>:/icons/android-debug-bridge.svg</normaloff>:/icons/android-debug-bridge.svg</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -63,7 +63,7 @@
         <item>
          <widget class="QPushButton" name="btnMenu">
           <property name="icon">
-           <iconset resource="divvydroid.qrc">
+           <iconset resource="../res/divvydroid.qrc">
             <normaloff>:/icons/menu.svg</normaloff>:/icons/menu.svg</iconset>
           </property>
           <property name="iconSize">
@@ -77,7 +77,7 @@
         <item>
          <widget class="QPushButton" name="btnHome">
           <property name="icon">
-           <iconset resource="divvydroid.qrc">
+           <iconset resource="../res/divvydroid.qrc">
             <normaloff>:/icons/home.svg</normaloff>:/icons/home.svg</iconset>
           </property>
           <property name="iconSize">
@@ -91,7 +91,7 @@
         <item>
          <widget class="QPushButton" name="btnBack">
           <property name="icon">
-           <iconset resource="divvydroid.qrc">
+           <iconset resource="../res/divvydroid.qrc">
             <normaloff>:/icons/undo-variant.svg</normaloff>:/icons/undo-variant.svg</iconset>
           </property>
           <property name="iconSize">
@@ -130,7 +130,7 @@
          <string>Power</string>
         </property>
         <property name="icon">
-         <iconset resource="divvydroid.qrc">
+         <iconset resource="../res/divvydroid.qrc">
           <normaloff>:/icons/power-standby.svg</normaloff>:/icons/power-standby.svg</iconset>
         </property>
         <property name="iconSize">
@@ -147,7 +147,7 @@
          <string>Unlock</string>
         </property>
         <property name="icon">
-         <iconset resource="divvydroid.qrc">
+         <iconset resource="../res/divvydroid.qrc">
           <normaloff>:/icons/lock-open.svg</normaloff>:/icons/lock-open.svg</iconset>
         </property>
         <property name="iconSize">
@@ -180,7 +180,7 @@
          <item>
           <widget class="QPushButton" name="btnVolumeDown">
            <property name="icon">
-            <iconset resource="divvydroid.qrc">
+            <iconset resource="../res/divvydroid.qrc">
              <normaloff>:/icons/volume-minus.svg</normaloff>:/icons/volume-minus.svg</iconset>
            </property>
            <property name="iconSize">
@@ -194,7 +194,7 @@
          <item>
           <widget class="QPushButton" name="btnVolumeUp">
            <property name="icon">
-            <iconset resource="divvydroid.qrc">
+            <iconset resource="../res/divvydroid.qrc">
              <normaloff>:/icons/volume-plus.svg</normaloff>:/icons/volume-plus.svg</iconset>
            </property>
            <property name="iconSize">
@@ -228,7 +228,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="divvydroid.qrc"/>
+  <include location="../res/divvydroid.qrc"/>
  </resources>
  <connections/>
 </ui>
