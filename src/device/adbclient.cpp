@@ -191,6 +191,15 @@ AdbClient::send(QByteArray command)
 	return readStatus();
 }
 
+void
+AdbClient::connectToHost()
+{
+	//m_sock.setSocketOption(QTcpSocket::LowDelayOption, 1); // TCP_NODELAY
+	m_sock.setSocketOption(QTcpSocket::KeepAliveOption, 1); // SO_KEEPALIVE
+	m_sock.connectToHost(QStringLiteral("localhost"), 5037, QIODevice::ReadWrite);
+}
+
+
 bool
 AdbClient::connectToDevice()
 {

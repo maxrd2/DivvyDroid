@@ -46,6 +46,7 @@ protected:
 
 private:
 	const char * h264Error(int errorCode);
+	bool h264Connect();
 	bool h264Init();
 	int h264VideoStreamIndex();
 	bool h264Process();

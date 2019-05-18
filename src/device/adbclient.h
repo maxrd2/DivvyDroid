@@ -43,7 +43,7 @@ public:
 	explicit AdbClient(QObject *parent = nullptr);
 	virtual ~AdbClient();
 
-	void connectToHost() { m_sock.connectToHost(QStringLiteral("localhost"), 5037, QIODevice::ReadWrite); }
+	void connectToHost();
 	bool connectToDevice();
 	bool forwardTcpPort(int local, int remote);
 	inline void close() { m_sock.close(); }
@@ -51,6 +51,7 @@ public:
 	inline bool waitForReadyRead(int msecs = -1) { return m_sock.waitForReadyRead(msecs); }
 	inline QTcpSocket::SocketError error() { return m_sock.error(); }
 	inline qint64 bytesAvailable() { return m_sock.bytesAvailable(); }
+	inline qint64 isConnected() { return m_sock.state() != QTcpSocket::UnconnectedState; }
 
 	bool read(void *data, qint64 max);
 	bool write(const void *data, qint64 max);

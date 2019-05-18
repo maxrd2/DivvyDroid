@@ -58,20 +58,49 @@ VideoThread::h264Error(int errorCode)
 }
 
 bool
+VideoThread::h264Connect()
+{
+	if(!m_adb->connectToDevice())
+		return false;
+
+	QByteArray cmd("shell:screenrecord --output-format=h264 --size ");
+	cmd
+		.append(QString::number(720)).append('x')
+		.append(QString::number(720 * aDev->screenHeight() / aDev->screenWidth())).append(" -");
+
+	if(!m_adb->send(cmd)) {
+		qWarning() << "FRAMEBUFFER error executing" << cmd.mid(6);
+		return false;
+	}
+
+	qDebug() << "FRAMEBUFFER connected";
+	return true;
+}
+
+bool
 VideoThread::h264Init()
 {
 	auto read_packet = [](void *u, uint8_t *buf, int buf_size)->int{
 		VideoThread *me = reinterpret_cast<VideoThread *>(u);
 		qint64 len = me->m_adb->bytesAvailable();
 		while(len == 0) {
+			if(!me->m_adb->isConnected() && !me->h264Connect())
+				return -1;
 			const bool res = me->m_adb->waitForReadyRead(50);
 			if(me->isInterruptionRequested())
 				return -1;
-			if(!res && me->m_adb->error() != QTcpSocket::SocketTimeoutError)
-				return -1;
-			if(res) {
+			if(!res) {
+				const QTcpSocket::SocketError err = me->m_adb->error();
+				if(err == QTcpSocket::RemoteHostClosedError) {
+					qDebug() << "FRAMEBUFFER stream disconnected - reconnecting";
+					continue;
+				}
+				if(err != QTcpSocket::SocketTimeoutError) {
+					qDebug() << "FRAMEBUFFER read failed:" << err;
+					return -1;
+				}
+			} else {
 				len = me->m_adb->bytesAvailable();
-				break;
 			}
 		}
 		if(len > buf_size)
@@ -171,19 +200,6 @@ VideoThread::h264VideoStreamIndex()
 bool
 VideoThread::h264Process()
 {
-	if(!m_adb->connectToDevice())
-		return false;
-
-	QByteArray cmd("shell:screenrecord --output-format=h264 --size ");
-	cmd
-		.append(QString::number(720)).append('x')
-		.append(QString::number(720 * aDev->screenHeight() / aDev->screenWidth())).append(" -");
-
-	if(!m_adb->send(cmd)) {
-		qWarning() << "FRAMEBUFFER error executing" << cmd.mid(6);
-		return false;
-	}
-
 	if(!h264Init()) {
 		h264Exit();
 		return false;
