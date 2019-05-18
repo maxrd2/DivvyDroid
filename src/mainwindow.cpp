@@ -66,6 +66,11 @@ MainWindow::onDeviceReady()
 	adjustSize();
 	setFixedSize(sizeHint());
 
+	// start video thread
+	m_videoThread = new VideoThread();
+	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
+	m_videoThread->start();
+
 	// init monkey daemon
 	MonkeyHandler::initDaemon();
 }
@@ -123,11 +128,6 @@ MainWindow::onInputReady()
 		}
 		AdbClient::shell("wm dismiss-keyguard");
 	});
-
-	// start video thread
-	m_videoThread = new VideoThread();
-	connect(m_videoThread, &VideoThread::imageReady, this, &MainWindow::updateScreen);
-	m_videoThread->start();
 }
 
 void
