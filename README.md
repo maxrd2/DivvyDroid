@@ -16,7 +16,10 @@
 You need to [install Android Debug Bridge](https://www.xda-developers.com/install-adb-windows-macos-linux/).
 Make sure that `adb` command is in path. Executing `adb devices` should list your phone.
 
-## Build/Install
+## Install
+Binary releases can be found on [releases page](https://github.com/maxrd2/DivvyDroid/releases)
+
+## Build
 
 You will require git, cmake, Qt5 and FFmpeg.
 ```shell
