@@ -13,6 +13,10 @@ if(POLICY CMP0071)
 endif()
 
 include(FeatureSummary)
+include(GNUInstallDirs)
+
+set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
 
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
 	Core Gui Network Widgets
