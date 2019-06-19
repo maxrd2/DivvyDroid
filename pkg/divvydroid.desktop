@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=DivvyDroid
+GenericName=Android Remote Control
+Comment=Application to screencast and remote control Android devices
+Icon=divvydroid
+Exec=divvydroid
+Terminal=false
+Categories=Qt;Utility;

@@ -15,9 +15,6 @@ endif()
 include(FeatureSummary)
 include(GNUInstallDirs)
 
-set (LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-set (BIN_INSTALL_DIR ${CMAKE_INSTALL_BINDIR})
-
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
 	Core Gui Network Widgets
 )
@@ -33,6 +30,7 @@ add_executable(divvydroid ${divvydroid_SRCS} ${divvydroid_RES})
 target_include_directories(divvydroid PUBLIC ${divvydroid_INC})
 target_link_libraries(divvydroid ${divvydroid_LIBS})
 
-install(TARGETS divvydroid DESTINATION ${BIN_INSTALL_DIR})
-#install(FILES divvydroid.desktop DESTINATION ${XDG_APPS_INSTALL_DIR})
-#install(FILES pkg/misc/divvydroid.desktop.appdata.xml DESTINATION ${KDE_INSTALL_METAINFODIR})
+install(TARGETS divvydroid DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES pkg/divvydroid.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+install(FILES res/icons/android-debug-bridge.svg RENAME divvydroid.svg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
+install(FILES pkg/divvydroid.desktop.appdata.xml DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)

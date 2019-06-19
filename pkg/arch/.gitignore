@@ -1,0 +1,6 @@
+src/
+pkg/
+repo/
+divvydroid
+divvydroid-*.src.tar.gz
+divvydroid-*.pkg.tar.xz
