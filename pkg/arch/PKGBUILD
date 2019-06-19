@@ -2,7 +2,7 @@
 
 _name=divvydroid
 pkgname=${_name}-git
-pkgver=52f8038
+pkgver=5d7273e
 pkgrel=1
 pkgdesc="Application to screencast and remote control Android devices (git version)"
 arch=('i686' 'x86_64')
