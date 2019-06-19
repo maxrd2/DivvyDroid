@@ -221,6 +221,17 @@
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QPushButton" name="btnAbout">
+        <property name="text">
+         <string>About</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../res/divvydroid.qrc">
+          <normaloff>:/icons/information-outline.svg</normaloff>:/icons/information-outline.svg</iconset>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>

@@ -9,5 +9,6 @@
         <file>icons/volume-plus.svg</file>
         <file>divvydroid.qss</file>
         <file>icons/android-debug-bridge.svg</file>
+        <file>icons/information-outline.svg</file>
     </qresource>
 </RCC>

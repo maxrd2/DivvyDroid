@@ -32,9 +32,11 @@ matrix:
       script:
         - |-
           mkdir build && cd build
+          verdef="" ; [[ ("$TRAVIS_BRANCH" != "$RELEASE_BRANCH" && "$TRAVIS_BRANCH" != "$TRAVIS_TAG") || "$TRAVIS_EVENT_TYPE" != "push" ]] && verdef="-DAPP_VERSION=`git describe --always | sed 's|-|.|g' | sed -e 's/^v//g'`"
           cmake \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
+            $verdef \
             .. || (cat /home/travis/build/maxrd2/divvydroid/build/CMakeFiles/CMakeOutput.log ; exit 1) || exit 1
           make -j$(nproc) || exit 1
       after_success:

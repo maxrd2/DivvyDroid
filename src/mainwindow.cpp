@@ -25,9 +25,17 @@
 #include "input/devicebuttonhandler.h"
 #include "input/shellkeyboardhandler.h"
 #include "input/monkeyhandler.h"
+#include "aboutdialog.h"
 
 #include <QMouseEvent>
 #include <QDebug>
+#include <QLibraryInfo>
+
+#ifndef APP_VERSION
+#define APP_VERSION 1.0
+#endif
+#define STR_(x) #x
+#define STR(x) STR_(x)
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent),
@@ -36,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
 	  m_videoThread(nullptr)
 {
 	ui->setupUi(this);
+	connect(ui->btnAbout, &QPushButton::clicked, this, &MainWindow::aboutDialog);
 	ui->screen->setFocusPolicy(Qt::StrongFocus);
 	ui->screen->setFocus();
 }
@@ -45,6 +54,21 @@ MainWindow::~MainWindow()
 	delete m_initThread;
 	delete m_videoThread;
 	delete ui;
+}
+
+void
+MainWindow::aboutDialog()
+{
+	AboutDialog dlg;
+
+	dlg.replaceTag(QStringLiteral("%VERSION"), QStringLiteral(STR(APP_VERSION)));
+
+	QString qtVersion(qVersion());
+	if(QVersionNumber::compare(QLibraryInfo::version(), QVersionNumber(QT_VERSION_MAJOR, QT_VERSION_MINOR, QT_VERSION_PATCH)))
+	   qtVersion.append(QStringLiteral(" (built against " QT_VERSION_STR ")"));
+	dlg.replaceTag(QStringLiteral("%QT_VERSION"), qtVersion);
+
+	dlg.exec();
 }
 
 void

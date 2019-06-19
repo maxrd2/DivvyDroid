@@ -15,6 +15,11 @@ endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+if(APP_VERSION)
+	message(STATUS "Building as custom version ${APP_VERSION}")
+	add_definitions(-DAPP_VERSION=${APP_VERSION})
+endif()
+
 add_definitions(${QT_DEFINITIONS} -fexceptions) # -DHAVE_CONFIG_H
 add_definitions(-D_DEFAULT_SOURCE)
 
@@ -47,6 +52,8 @@ set(divvydroid_SRCS
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.ui
+	${CMAKE_CURRENT_SOURCE_DIR}/aboutdialog.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/aboutdialog.ui
 	CACHE INTERNAL EXPORTEDVARIABLE
 )
 
@@ -61,3 +68,8 @@ set(divvydroid_LIBS
 # do the configuration of config.h at the end, so all the necessary variables have been set
 #configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
+add_executable(divvydroid ${divvydroid_SRCS} ${divvydroid_RES})
+target_include_directories(divvydroid PUBLIC ${divvydroid_INC})
+target_link_libraries(divvydroid ${divvydroid_LIBS})
+
+install(TARGETS divvydroid DESTINATION ${CMAKE_INSTALL_BINDIR})

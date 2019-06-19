@@ -26,11 +26,6 @@ set(CMAKE_AUTOMOC ON)
 add_subdirectory(res)
 add_subdirectory(src)
 
-add_executable(divvydroid ${divvydroid_SRCS} ${divvydroid_RES})
-target_include_directories(divvydroid PUBLIC ${divvydroid_INC})
-target_link_libraries(divvydroid ${divvydroid_LIBS})
-
-install(TARGETS divvydroid DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES pkg/divvydroid.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 install(FILES res/icons/android-debug-bridge.svg RENAME divvydroid.svg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
 install(FILES pkg/divvydroid.desktop.appdata.xml DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)

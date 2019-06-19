@@ -46,6 +46,7 @@ public slots:
 	void onDeviceReady();
 	void onInputReady();
 	void updateScreen(const QImage &image);
+	void aboutDialog();
 
 private:
 	Ui::MainWindow *ui;
