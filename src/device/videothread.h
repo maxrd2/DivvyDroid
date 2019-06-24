@@ -62,6 +62,7 @@ private:
 	SwsContext *m_swsContext;
 	AVFrame *m_frame;
 	AVFrame *m_rgbFrame;
+	bool m_h264Active;
 };
 
 #endif // VIDEOTHREAD_H

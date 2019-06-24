@@ -92,8 +92,13 @@ VideoThread::h264Init()
 			if(!res) {
 				const QTcpSocket::SocketError err = me->m_adb->error();
 				if(err == QTcpSocket::RemoteHostClosedError) {
-					qDebug() << "FRAMEBUFFER stream disconnected - reconnecting";
-					continue;
+					if(me->m_h264Active) {
+						qDebug() << "FRAMEBUFFER stream disconnected - reconnecting";
+						continue;
+					} else {
+						qDebug() << "FRAMEBUFFER stream disconnected";
+						return -1;
+					}
 				}
 				if(err != QTcpSocket::SocketTimeoutError) {
 					qDebug() << "FRAMEBUFFER read failed:" << err;
@@ -110,6 +115,7 @@ VideoThread::h264Init()
 		return len;
 	};
 
+	m_h264Active = false;
 	const int bufSize = 8192;
 	unsigned char *buf = reinterpret_cast<unsigned char *>(av_malloc(bufSize));
 
@@ -143,6 +149,8 @@ VideoThread::h264Init()
 		return false;
 	}
 	av_dump_format(m_avFormat, 0, "", 0);
+
+	m_h264Active = true;
 
 	return true;
 }
@@ -272,7 +280,6 @@ VideoThread::h264Process()
 void
 VideoThread::h264Exit()
 {
-	AVIOContext *ioContext = m_avFormat->pb;
 	if(m_swsContext)
 		sws_freeContext(m_swsContext);
 	av_frame_free(&m_frame);
@@ -280,8 +287,11 @@ VideoThread::h264Exit()
 	av_frame_free(&m_rgbFrame);
 	if(m_codecCtx)
 		avcodec_free_context(&m_codecCtx);
-	avformat_close_input(&m_avFormat);
-	avio_context_free(&ioContext);
+	if(m_avFormat) {
+		AVIOContext *ioContext = m_avFormat->pb;
+		avformat_close_input(&m_avFormat);
+		avio_context_free(&ioContext);
+	}
 }
 
 void
