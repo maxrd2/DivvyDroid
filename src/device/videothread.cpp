@@ -63,7 +63,7 @@ VideoThread::h264Connect()
 	if(!m_adb->connectToDevice())
 		return false;
 
-	QByteArray cmd("shell:screenrecord --output-format=h264 --size ");
+	QByteArray cmd("shell:stty raw; screenrecord --output-format=h264 --size ");
 	cmd
 		.append(QString::number(720)).append('x')
 		.append(QString::number(720 * aDev->screenHeight() / aDev->screenWidth())).append(" -");

@@ -333,7 +333,7 @@ AdbClient::fetchScreenPng()
 	if(!connectToDevice())
 		return QImage();
 
-	if(!send("shell:screencap -p")) {
+	if(!send("shell:stty raw; screencap -p")) {
 		qWarning() << "FRAMEBUFFER error executing PNG screencap";
 		return QImage();
 	}
@@ -353,7 +353,7 @@ AdbClient::fetchScreenJpeg()
 	if(!connectToDevice())
 		return QImage();
 
-	if(!send("shell:screencap -j")) {
+	if(!send("shell:stty raw; screencap -j")) {
 		qWarning() << "FRAMEBUFFER error executing JPEG screencap";
 		return QImage();
 	}
