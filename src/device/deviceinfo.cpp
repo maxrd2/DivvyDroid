@@ -108,7 +108,11 @@ DeviceInfo::connect(const char *deviceId)
 	aDev = new DeviceInfo(deviceId);
 
 	// device architecture
-	aDev->m_arch64 = AdbClient::shell("file -L /system/bin/cat | grep 32-bit").size() == 0;
+	const QByteArray abi = AdbClient::shell("getprop ro.product.cpu.abi").simplified();
+	aDev->m_arch64 = abi != "armeabi-v7a" && abi != "armeabi" && abi != "x86";
+
+	// android version
+	aDev->m_androidVer = AdbClient::shell("getprop ro.build.version.release").simplified();
 
 	// screen resolution
 	QByteArray res = AdbClient::shell("dumpsys display | grep -E 'mDisplayWidth|mDisplayHeight'").replace('\n', '\0');

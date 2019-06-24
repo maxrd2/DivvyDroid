@@ -37,6 +37,7 @@ class DeviceInfo
 public:
 	inline const QString & deviceId() const { return m_deviceId; }
 
+	inline const QString androidVersion() const { return m_androidVer; }
 	inline bool isArch64() const { return m_arch64; }
 
 	bool isScreenAwake() const;
@@ -58,6 +59,7 @@ protected:
 
 private:
 	QString m_deviceId;
+	QString m_androidVer;
 	bool m_arch64;
 	int m_inputTouch;
 	int m_inputPower;
