@@ -335,6 +335,11 @@ VideoThread::run()
 				img = m_adb->fetchScreenPng();
 			else
 				return;
+			switch(aDev->screenRotation()) {
+			case 0: break;
+			case 180: img = img.mirrored(true, true); break;
+			default: { QTransform t; t.rotate(aDev->screenRotation()); img = img.transformed(t); } break;
+			}
 		} else {
 			img = QImage(m_imageWidth, m_imageHeight, QImage::Format_RGB888);
 			img.fill(Qt::black);

@@ -43,6 +43,7 @@ public:
 	bool isScreenAwake() const;
 	inline quint32 screenWidth() const { return m_screenWidth; }
 	inline quint32 screenHeight() const { return m_screenHeight; }
+	inline quint32 screenRotation() const { return m_screenRotation; }
 
 	inline int inputTouch() const { return m_inputTouch; }
 	inline int inputPower() const { return m_inputPower; }
@@ -66,6 +67,7 @@ private:
 	int m_inputHome;
 	int m_inputBack;
 	int m_inputVolume;
+	quint32 m_screenRotation;
 	quint32 m_screenWidth;
 	quint32 m_screenHeight;
 };

@@ -129,10 +129,12 @@ DeviceInfo::connect(const char *deviceId)
 		i = re.indexIn(res, i + re.matchedLength());
 		aDev->m_screenHeight = i != -1 ? re.cap(2).toInt() : 0;
 	}
+	aDev->m_screenRotation = (360 + AdbClient::shell("getprop ro.sf.hwrotation").simplified().toInt()) % 360;
 
 	qDebug() << "DEVICE connected"
-			 << "screen:" << aDev->m_screenWidth << 'x' << aDev->m_screenHeight
-			 << "arch:" << (aDev->m_arch64 ? "64-bit" : "32-bit");
+			 << "\n\tandroid:" << aDev->m_androidVer
+			 << "\n\tscreen:" << aDev->m_screenWidth << 'x' << aDev->m_screenHeight << ' ' << aDev->m_screenRotation << "deg"
+			 << "\n\tarch:" << (aDev->m_arch64 ? "64-bit" : "32-bit");
 }
 
 void
