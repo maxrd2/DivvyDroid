@@ -52,6 +52,9 @@ MonkeyHandler::initDaemon()
 {
 	m_daemonReady = false;
 
+	// kill existing monkey daemons
+	AdbClient::shell("kill $(pidof com.android.commands.monkey)");
+
 	if(!m_daemon.connectToDevice())
 		return;
 	if(!m_daemon.send(QByteArray("shell:monkey --port 33333")))
@@ -74,21 +77,33 @@ MonkeyHandler::init(const WidgetKeyMap &keyMap)
 		return false;
 
 	// wait a bit so monkey daemon has time to start
-	for(int i = 0; i < 16; i++) {
-		QThread::msleep(100);
+	int timeout = 3000;
+	while(timeout > 0) {
+		QThread::msleep(300);
 		QCoreApplication::processEvents();
-	}
+		timeout -= 300;
 
-	// connect to device's tcp
-	if(!m_monkey.connectToDevice())
-		return false;
-	if(!m_monkey.send(QByteArray("tcp:33333"))) {
-		m_monkey.close();
+		// connect to device's tcp
 		if(!m_monkey.connectToDevice())
 			return false;
-		if(!m_monkey.send(QByteArray("shell:telnet ::1 33333")))
+		if(m_monkey.send(QByteArray("tcp:33333")))
+			break;
+		m_monkey.close();
+
+		// connect using IPv6
+		if(!m_monkey.connectToDevice())
 			return false;
+		if(m_monkey.send(QByteArray("shell:telnet ::1 33333 ; echo OK"))) {
+			if(!m_monkey.waitForReadyRead(200)) {
+				// read timed out - telnet is connected :)
+				break;
+			}
+		}
+		m_monkey.close();
 	}
+	if(!m_monkey.isConnected())
+		return false;
+
 	disconnect(&m_monkey, &AdbClient::readyRead, nullptr, nullptr);
 	connect(&m_monkey, &AdbClient::readyRead, [&](){
 		const QByteArray res = m_monkey.readLine().trimmed();
