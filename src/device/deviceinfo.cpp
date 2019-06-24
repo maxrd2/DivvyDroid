@@ -111,11 +111,20 @@ DeviceInfo::connect(const char *deviceId)
 	aDev->m_arch64 = AdbClient::shell("file -L /system/bin/cat | grep 32-bit").size() == 0;
 
 	// screen resolution
-	const QByteArray res = AdbClient::shell("dumpsys display | grep -E 'mDisplayWidth|mDisplayHeight'").replace('\n', '\0');
+	QByteArray res = AdbClient::shell("dumpsys display | grep -E 'mDisplayWidth|mDisplayHeight'").replace('\n', '\0');
 	int i = res.indexOf("mDisplayWidth");
-	aDev->m_screenWidth = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
-	i = res.indexOf("DisplayHeight");
-	aDev->m_screenHeight = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
+	if(i != -1) {
+		aDev->m_screenWidth = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
+		i = res.indexOf("DisplayHeight");
+		aDev->m_screenHeight = i != -1 ? res.mid(res.indexOf('=', i) + 1).toInt() : 0;
+	} else {
+		res = AdbClient::shell("dumpsys display | grep mDefaultViewport").replace('\n', '\0');
+		QRegExp re("\\b(deviceWidth|deviceHeight)=(\\d+)\\b");
+		i = re.indexIn(res, 0);
+		aDev->m_screenWidth = i != -1 ? re.cap(2).toInt() : 0;
+		i = re.indexIn(res, i + re.matchedLength());
+		aDev->m_screenHeight = i != -1 ? re.cap(2).toInt() : 0;
+	}
 
 	qDebug() << "DEVICE connected"
 			 << "screen:" << aDev->m_screenWidth << 'x' << aDev->m_screenHeight
