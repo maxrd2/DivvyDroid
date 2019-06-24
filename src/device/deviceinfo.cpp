@@ -211,6 +211,17 @@ DeviceInfo::initInput()
 bool
 DeviceInfo::isScreenAwake() const
 {
-	const QByteArray res = AdbClient::shell("service call power 12");
-	return res.size() >= 32 && res.at(31) == '1';
+	const QByteArray res = AdbClient::shell("dumpsys input_method");
+	int i = res.indexOf("mScreenOn=");
+	if(i != -1) {
+		i += 10;
+	} else {
+		i = res.indexOf("mInteractive=");
+		if(i == -1) {
+			qWarning() << "DeviceInfo::isScreenAwake() failed.";
+			return true;
+		}
+		i += 13;
+	}
+	return res.at(i) == 't';
 }
