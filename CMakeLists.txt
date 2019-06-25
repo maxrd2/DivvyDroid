@@ -29,3 +29,9 @@ add_subdirectory(src)
 install(FILES pkg/divvydroid.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 install(FILES res/icons/android-debug-bridge.svg RENAME divvydroid.svg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
 install(FILES pkg/divvydroid.desktop.appdata.xml DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo)
+
+add_custom_target(nsis
+	DEPENDS divvydroid
+	COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/pkg/mingw/nsi-installer.sh" src/divvydroid.exe `${CMAKE_C_COMPILER} -dumpmachine` > "${CMAKE_CURRENT_BINARY_DIR}/installer.nsi"
+	COMMAND makensis "${CMAKE_CURRENT_BINARY_DIR}/installer.nsi"
+	)
