@@ -33,7 +33,7 @@ matrix:
       script:
         - |-
           mkdir build && cd build
-          verdef="" ; [[ ("$TRAVIS_BRANCH" != "$RELEASE_BRANCH" && "$TRAVIS_BRANCH" != "$TRAVIS_TAG") || "$TRAVIS_EVENT_TYPE" != "push" ]] && verdef="-DAPP_VERSION=`git describe --always | sed 's|-|.|g' | sed -e 's/^v//g'`"
+          verdef="-DAPP_VERSION=`git describe --always --abbrev=8 | sed 's/-g/-/;s/-/-git-/;s/^v//g'`"
           cmake \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
