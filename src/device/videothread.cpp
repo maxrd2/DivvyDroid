@@ -20,6 +20,7 @@
 #include "deviceinfo.h"
 
 #include <QImage>
+#include <cinttypes>
 #include <cstdint>
 
 extern "C" {
