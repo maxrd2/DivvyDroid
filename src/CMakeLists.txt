@@ -68,7 +68,7 @@ set(divvydroid_LIBS
 # do the configuration of config.h at the end, so all the necessary variables have been set
 #configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
-add_executable(divvydroid ${divvydroid_SRCS} ${divvydroid_RES})
+add_executable(divvydroid WIN32 ${divvydroid_SRCS} ${divvydroid_RES})
 target_include_directories(divvydroid PUBLIC ${divvydroid_INC})
 target_link_libraries(divvydroid ${divvydroid_LIBS})
 
