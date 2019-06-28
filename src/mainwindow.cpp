@@ -32,7 +32,7 @@
 #include <QLibraryInfo>
 
 #ifndef APP_VERSION
-#define APP_VERSION 1.1
+#define APP_VERSION 1.1.1
 #endif
 #define STR_(x) #x
 #define STR(x) STR_(x)
