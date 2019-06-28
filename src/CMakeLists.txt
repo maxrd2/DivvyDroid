@@ -57,6 +57,18 @@ set(divvydroid_SRCS
 	CACHE INTERNAL EXPORTEDVARIABLE
 )
 
+if(MINGW)
+	# add windows icon
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/divvydroidrc.obj
+		COMMAND ${CMAKE_RC_COMPILER}
+			-D GCC_WINDRES
+			-I ${CMAKE_CURRENT_SOURCE_DIR}
+			-I ${CMAKE_CURRENT_BINARY_DIR}
+			-o ${CMAKE_CURRENT_BINARY_DIR}/divvydroidrc.obj
+			-i ${CMAKE_CURRENT_SOURCE_DIR}/../res/divvydroid.rc)
+	set(divvydroid_SRCS ${divvydroid_SRCS} ${CMAKE_CURRENT_BINARY_DIR}/divvydroidrc.obj)
+endif()
+
 set(divvydroid_LIBS
 	${FFMPEG_LIBRARIES}
 	Qt5::Core
