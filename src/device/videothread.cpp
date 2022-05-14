@@ -167,7 +167,7 @@ VideoThread::h264VideoStreamIndex()
 		if(m_avStream->codecpar->codec_type != AVMEDIA_TYPE_VIDEO)
 			continue;
 
-		AVCodec *dec = avcodec_find_decoder(m_avStream->codecpar->codec_id);
+		auto dec = avcodec_find_decoder(m_avStream->codecpar->codec_id);
 		if(!dec) {
 			qDebug() << "FRAMEBUFFER can't find decoder for stream" << i;
 			continue;
